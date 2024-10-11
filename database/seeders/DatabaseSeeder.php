@@ -23,8 +23,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $role_manager = Role::create(['name' => 'manager']);
+        $role_manager = Role::create(['name' => 'admin']);
+        $role_manager = Role::create(['name' => 'customer']);
+        $role_manager = Role::create(['name' => 'visit']);
 
         $manager->assignRole($role_manager);
-
     }
 }
