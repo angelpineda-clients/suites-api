@@ -7,13 +7,15 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -49,6 +51,14 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
+    // Definir los eventos que deseas que se registren (create, update, delete, etc.)
+    protected static $logAttributes = ['*']; // Registrar todos los atributos
+    protected static $logName = 'default'; // Nombre del log por defecto
+    
+    // También puedes personalizar si deseas registrar los eventos create, update, delete, etc.
+    protected static $logOnlyDirty = true; // Solo registrar los cambios cuando el atributo cambie
+    protected static $submitEmptyLogs = false; // No registrar si no hay cambios
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -57,5 +67,11 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->setDescriptionForEvent(fn(string $eventName) => "This model has been {$eventName}");
     }
 }
