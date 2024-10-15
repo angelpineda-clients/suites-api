@@ -3,9 +3,9 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FloorController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SizeController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /* Route::get('/user', function (Request $request) {
@@ -23,6 +23,9 @@ Route::get('size/{id}', [SizeController::class, 'show']);
 
 Route::get('floor', [FloorController::class, 'index']);
 Route::get('floor/{id}', [FloorController::class, 'show']);
+
+Route::get('season', [SeasonController::class, 'index']);
+Route::get('season/{id}', [SeasonController::class, 'show']);
 
 Route::group([
     'middleware' => 'api',
@@ -49,4 +52,8 @@ Route::group([
     Route::post('floor', [FloorController::class, 'store'])->middleware(['role:manager|admin']);
     Route::put('floor/{id}', [FloorController::class, 'update'])->middleware(['role:manager|admin']);
     Route::delete('floor/{id}', [FloorController::class, 'delete'])->middleware(['role:manager|admin']);
+
+    Route::post('season', [SeasonController::class, 'store'])->middleware(['role:manager|admin']);
+    Route::put('season/{id}', [SeasonController::class, 'update'])->middleware(['role:manager|admin']);
+    Route::delete('season/{id}', [SeasonController::class, 'delete'])->middleware(['role:manager|admin']);
 });
