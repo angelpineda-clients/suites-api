@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FloorController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SizeController;
@@ -19,6 +20,9 @@ Route::get('service/{id}', [ServiceController::class, 'show']);
 
 Route::get('size', [SizeController::class, 'index']);
 Route::get('size/{id}', [SizeController::class, 'show']);
+
+Route::get('floor', [FloorController::class, 'index']);
+Route::get('floor/{id}', [FloorController::class, 'show']);
 
 Route::group([
     'middleware' => 'api',
@@ -40,6 +44,9 @@ Route::group([
 
     Route::post('size', [SizeController::class, 'store'])->middleware(['role:manager|admin']);
     Route::put('size/{id}', [SizeController::class, 'update'])->middleware(['role:manager|admin']);
-    ;
     Route::delete('size/{id}', [SizeController::class, 'delete'])->middleware(['role:manager|admin']);
+
+    Route::post('floor', [FloorController::class, 'store'])->middleware(['role:manager|admin']);
+    Route::put('floor/{id}', [FloorController::class, 'update'])->middleware(['role:manager|admin']);
+    Route::delete('floor/{id}', [FloorController::class, 'delete'])->middleware(['role:manager|admin']);
 });
