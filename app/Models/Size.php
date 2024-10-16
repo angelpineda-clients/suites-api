@@ -28,4 +28,8 @@ class Size extends BaseModel
         );
     }
     
+    public function room()
+    {
+        return $this->hasMany(Room::class);
+    }
 }

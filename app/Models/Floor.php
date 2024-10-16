@@ -26,4 +26,9 @@ class Floor extends BaseModel
             set: fn(string $value): string => strtoupper(string: $value),
         );
     }
+
+    public function room()
+    {
+        return $this->hasMany(Room::class);
+    }
 }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FloorController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SizeController;
@@ -26,6 +27,11 @@ Route::get('floor/{id}', [FloorController::class, 'show']);
 
 Route::get('season', [SeasonController::class, 'index']);
 Route::get('season/{id}', [SeasonController::class, 'show']);
+
+Route::get('room', [RoomController::class, 'index']);
+Route::get('room/{id}', [RoomController::class, 'show']);
+
+
 
 Route::group([
     'middleware' => 'api',
@@ -56,4 +62,8 @@ Route::group([
     Route::post('season', [SeasonController::class, 'store'])->middleware(['role:manager|admin']);
     Route::put('season/{id}', [SeasonController::class, 'update'])->middleware(['role:manager|admin']);
     Route::delete('season/{id}', [SeasonController::class, 'delete'])->middleware(['role:manager|admin']);
+
+    Route::post('room', [RoomController::class, 'store'])->middleware(['role:manager|admin']);
+    Route::put('room/{id}', [RoomController::class, 'update'])->middleware(['role:manager|admin']);
+    Route::delete('room/{id}', [RoomController::class, 'delete'])->middleware(['role:manager|admin']);
 });
