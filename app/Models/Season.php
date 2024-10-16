@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Season extends Model
+class Season extends BaseModel
 {
     use HasFactory;
 
@@ -24,7 +23,6 @@ class Season extends Model
     protected function alias(): Attribute
     {
         return Attribute::make(
-            get: fn(string $value): string => strtoupper(string: $value),
             set: fn(string $value): string => strtoupper(string: $value),
         );
     }
