@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Floor;
+use App\Models\Service;
+use App\Models\Size;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -26,7 +29,19 @@ class DatabaseSeeder extends Seeder
         $role_admin = Role::create(['name' => 'admin']);
         $role_customer = Role::create(['name' => 'customer']);
         $role_visit = Role::create(['name' => 'visit']);
-
+        
         $manager->assignRole($role_manager);
+        
+        Size::create(['name' => 'small', 'alias' => 'xs' ]);
+        Size::create(['name' => 'medium', 'alias' => 'md']);
+
+        Floor::create(['name' => 'planta baja', 'alias' => 'pb']);
+        Floor::create(['name' => 'primer piso', 'alias' => 'p1']);
+
+        Service::create(['name' => 'television']);
+        Service::create(['name' => 'cocina']);
+        Service::create(['name' => 'aire acondicionado']);
+
+
     }
 }

@@ -33,4 +33,9 @@ class Room extends BaseModel
     {
         return $this->belongsTo(Floor::class);
     }
+
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'room_service');
+    }
 }

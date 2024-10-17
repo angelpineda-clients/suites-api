@@ -20,4 +20,9 @@ class Service extends BaseModel
             set: fn(string $value): string => strtoupper(string: $value)
         );
     }
+
+    public function rooms()
+    {
+        return $this->belongsToMany(Room::class, 'room_service');
+    }
 }

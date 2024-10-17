@@ -17,7 +17,19 @@ class RoomController extends Controller
         ]) ;
 
         try {
-            $room = Room::create($request->all());
+            $room = Room::create([
+                'name' => $request['name'],
+                'description' => $request['description'],
+                'capacity' => $request['capacity'],
+                'beds' => $request['beds'],
+                'price' => $request['price'],
+                'size_id' => $request['size_id'],
+                'floor_id' => $request['floor_id'],
+            ]);
+
+            $services = $request->input('services[]');
+
+            $room->services()->sync($services);
 
             return response()->json([
                 'data' => $room
@@ -31,7 +43,7 @@ class RoomController extends Controller
     public function index()
     {
         try {
-            $rooms = Room::with('size', 'floor')->get();
+            $rooms = Room::with('size', 'floor', 'services')->get();
 
             return response()->json([
                 'data' => $rooms
@@ -46,7 +58,13 @@ class RoomController extends Controller
     {
         
         try{
-            $room = Room::findOrFail($id);
+            $room = Room::where('id',$id)->with('size','floor', 'services')->first();
+
+            if (!$room) {
+                return response()->json([
+                    'message' => "Results not found for id: $id"
+                ]);
+            }
 
             return response()->json([
                 'data' => $room
@@ -60,9 +78,21 @@ class RoomController extends Controller
     public function update(Request $request, string $id)
     {
         try{
-            $room = Room::findOrFail(id: $id);
+            $room = Room::where('id', $id)->with('size', 'floor', 'services')->first();
 
-            $room->update($request->all());
+            $room->update([
+                'name' => $request['name'],
+                'description' => $request['description'],
+                'capacity' => $request['capacity'],
+                'beds' => $request['beds'],
+                'price' => $request['price'],
+                'size_id' => $request['size_id'],
+                'floor_id' => $request['floor_id'],
+            ]);
+
+            $services = $request->input('services[]');
+
+            $room->services()->sync($services);
 
             return response()->json([
                 'data' => $room
@@ -77,6 +107,8 @@ class RoomController extends Controller
     {
         try {
             $room = Room::findOrFail($id);
+
+            $room->delete();
 
             return response()->json([
                 'data' => $room
