@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Route;
     return $request->user();
 })->middleware('auth:sanctum'); */
 
-Route::post('/register', [AuthController::class, 'register']);
-//Route::post('/login', [AuthController::class, 'login']);
+Route::post('register', [AuthController::class, 'register']);
+
 
 Route::get('service', [ServiceController::class, 'index']);
 Route::get('service/{id}', [ServiceController::class, 'show']);
@@ -31,39 +31,41 @@ Route::get('season/{id}', [SeasonController::class, 'show']);
 Route::get('room', [RoomController::class, 'index']);
 Route::get('room/{id}', [RoomController::class, 'show']);
 
+Route::post('refresh', [AuthController::class, 'refresh']);
 
 
 Route::group([
-    'middleware' => 'api',
+  'middleware' => 'api',
 ], function ($router) {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('me', [AuthController::class, 'me']);
-    Route::post('logout', [AuthController::class, 'logout']);
+  Route::post('me', [AuthController::class, 'me']);
+  Route::post('login', [AuthController::class, 'login']);
+  Route::post('logout', [AuthController::class, 'logout']);
 
-    Route::get('role', [RoleController::class, 'index'])->middleware('role:manager');
-    Route::get('role/{role}', [RoleController::class, 'show'])->middleware('role:manager');
-    Route::post('role', [RoleController::class, 'create'])->middleware('role:manager');
-    Route::put('role/{role}', [RoleController::class, 'update'])->middleware('role:manager');
-    Route::delete('role/{role}', [RoleController::class, 'delete'])->middleware('role:manager');
+  Route::get('role', [RoleController::class, 'index'])->middleware('role:manager');
+  Route::get('role/{role}', [RoleController::class, 'show'])->middleware('role:manager');
+  Route::post('role', [RoleController::class, 'create'])->middleware('role:manager');
+  Route::put('role/{role}', [RoleController::class, 'update'])->middleware('role:manager');
+  Route::delete('role/{role}', [RoleController::class, 'delete'])->middleware('role:manager');
 
-    
-    Route::post('service', [ServiceController::class, 'store'])->middleware(['role:manager|admin']);
-    Route::put('service/{id}', [ServiceController::class, 'update'])->middleware(['role:manager|admin']);;
-    Route::delete('service/{id}', [ServiceController::class, 'delete'])->middleware(['role:manager|admin']);
 
-    Route::post('size', [SizeController::class, 'store'])->middleware(['role:manager|admin']);
-    Route::put('size/{id}', [SizeController::class, 'update'])->middleware(['role:manager|admin']);
-    Route::delete('size/{id}', [SizeController::class, 'delete'])->middleware(['role:manager|admin']);
+  Route::post('service', [ServiceController::class, 'store'])->middleware(['role:manager|admin']);
+  Route::put('service/{id}', [ServiceController::class, 'update'])->middleware(['role:manager|admin']);
+  ;
+  Route::delete('service/{id}', [ServiceController::class, 'delete'])->middleware(['role:manager|admin']);
 
-    Route::post('floor', [FloorController::class, 'store'])->middleware(['role:manager|admin']);
-    Route::put('floor/{id}', [FloorController::class, 'update'])->middleware(['role:manager|admin']);
-    Route::delete('floor/{id}', [FloorController::class, 'delete'])->middleware(['role:manager|admin']);
+  Route::post('size', [SizeController::class, 'store'])->middleware(['role:manager|admin']);
+  Route::put('size/{id}', [SizeController::class, 'update'])->middleware(['role:manager|admin']);
+  Route::delete('size/{id}', [SizeController::class, 'delete'])->middleware(['role:manager|admin']);
 
-    Route::post('season', [SeasonController::class, 'store'])->middleware(['role:manager|admin']);
-    Route::put('season/{id}', [SeasonController::class, 'update'])->middleware(['role:manager|admin']);
-    Route::delete('season/{id}', [SeasonController::class, 'delete'])->middleware(['role:manager|admin']);
+  Route::post('floor', [FloorController::class, 'store'])->middleware(['role:manager|admin']);
+  Route::put('floor/{id}', [FloorController::class, 'update'])->middleware(['role:manager|admin']);
+  Route::delete('floor/{id}', [FloorController::class, 'delete'])->middleware(['role:manager|admin']);
 
-    Route::post('room', [RoomController::class, 'store'])->middleware(['role:manager|admin']);
-    Route::put('room/{id}', [RoomController::class, 'update'])->middleware(['role:manager|admin']);
-    Route::delete('room/{id}', [RoomController::class, 'delete'])->middleware(['role:manager|admin']);
+  Route::post('season', [SeasonController::class, 'store'])->middleware(['role:manager|admin']);
+  Route::put('season/{id}', [SeasonController::class, 'update'])->middleware(['role:manager|admin']);
+  Route::delete('season/{id}', [SeasonController::class, 'delete'])->middleware(['role:manager|admin']);
+
+  Route::post('room', [RoomController::class, 'store'])->middleware(['role:manager|admin']);
+  Route::put('room/{id}', [RoomController::class, 'update'])->middleware(['role:manager|admin']);
+  Route::delete('room/{id}', [RoomController::class, 'delete'])->middleware(['role:manager|admin']);
 });
