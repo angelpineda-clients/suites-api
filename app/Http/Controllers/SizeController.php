@@ -7,92 +7,123 @@ use Illuminate\Http\Request;
 
 class SizeController extends Controller
 {
-    public function store(Request $request)
-    {
+  public function store(Request $request)
+  {
 
-        $validated = $request->validate([
-            'name' => 'string|required',
-            'alias' => 'string'
+    $validated = $request->validate([
+      'name' => 'string|required',
+      'alias' => 'nullable|string'
+    ]);
+
+    try {
+      $size = Size::create($request->all());
+
+      if ($size) {
+
+        $all_sizes = Size::all();
+
+        return response()->json([
+          'response' => [
+            'status' => true,
+            'data' => $all_sizes
+          ]
         ]);
 
-        try {
-            $size = Size::create($request->all());
+      }
 
-            return response()->json([
-                'data' => $size
-            ]);
 
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function index()
-    {
-        try {
-            $sizes = Size::all();
+  public function index()
+  {
+    try {
+      $all_sizes = Size::all();
 
-            return response()->json([
-                'data' => $sizes
-            ]);
+      return response()->json([
+        'response' => [
+          'status' => true,
+          'data' => $all_sizes
+        ]
+      ]);
 
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function show(Request $request, string $id)
-    {
+  public function show(Request $request, string $id)
+  {
 
-        try {
-            $size = Size::findOrFail($id);
+    try {
+      $size = Size::findOrFail($id);
 
-            return response()->json([
-                'data' => $size
-            ]);
+      return response()->json([
+        'response' => [
+          'response' => true,
+          'data' => $size
+        ]
+      ]);
 
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function update(Request $request, string $id)
-    {
-        $validated = $request->validate([
-            'name' => 'string|required',
-            'alias' => 'string'
+  public function update(Request $request, string $id)
+  {
+    $validated = $request->validate([
+      'name' => 'string|required',
+      'alias' => 'string'
+    ]);
+
+    try {
+
+      $size = Size::findOrFail($id);
+
+      if ($size) {
+        $size->update($request->all());
+
+        $all_sizes = Size::all();
+
+        return response()->json([
+          'response' => [
+            'status' => true,
+            'data' => $size
+          ]
         ]);
+      }
 
-        try {
-
-            $size = Size::findOrFail($id);
-
-            $size->update($request->all());
-
-            return response()->json([
-                'data' => $size
-            ]);
-
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function delete(Request $request, string $id)
-    {
+  public function delete(Request $request, string $id)
+  {
 
-        try {
+    try {
 
-            $size = Size::findOrFail($id);
+      $size = Size::findOrFail($id);
 
-            $size->delete();
+      if ($size) {
 
-            return response()->json([
-                'data' => $size->name . ' deleted'
-            ]);
+        $size->delete();
 
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+        $all_sizes = Size::all();
+
+        return response()->json([
+          'response' => [
+            'status' => true,
+            'data' => $all_sizes
+          ]
+        ]);
+      }
+
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 }

@@ -12,7 +12,7 @@ class SeasonController extends Controller
 
     $validated = $request->validate([
       'name' => 'string|required',
-      'alias' => 'string'
+      'alias' => 'nullable|string'
     ]);
 
     try {
