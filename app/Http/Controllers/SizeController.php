@@ -3,37 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Size;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Validator;
 
 class SizeController extends Controller
 {
   public function store(Request $request)
   {
 
-    $validated = $request->validate([
-      'name' => 'string|required',
+    $validator = Validator::make(data: $request->all(), rules: [
+      'name' => 'required|string|max:255',
       'alias' => 'nullable|string'
     ]);
 
+    if ($validator->fails()) {
+      return response()->json(data: [
+        'error' => 'Validation Error',
+        'message' => $validator->errors()
+      ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
     try {
-      $size = Size::create($request->all());
+      $size = Size::create(attributes: $request->all());
 
       if ($size) {
 
         $all_sizes = Size::all();
 
-        return response()->json([
+        return response()->json(data: [
           'response' => [
             'status' => true,
             'data' => $all_sizes
           ]
-        ]);
-
+        ], status: Response::HTTP_CREATED);
       }
 
-
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (size)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -42,15 +53,18 @@ class SizeController extends Controller
     try {
       $all_sizes = Size::all();
 
-      return response()->json([
+      return response()->json(data: [
         'response' => [
           'status' => true,
           'data' => $all_sizes
         ]
-      ]);
+      ], status: Response::HTTP_OK);
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (size)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -58,7 +72,7 @@ class SizeController extends Controller
   {
 
     try {
-      $size = Size::findOrFail($id);
+      $size = Size::findOrFail(id: $id);
 
       return response()->json([
         'response' => [
@@ -67,37 +81,63 @@ class SizeController extends Controller
         ]
       ]);
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (size)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_NOT_FOUND);
+
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (size)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 
   public function update(Request $request, string $id)
   {
-    $validated = $request->validate([
+    $validator = Validator::make(data: $request->all(), rules: [
       'name' => 'string|required',
-      'alias' => 'string'
+      'alias' => 'nullable|string'
     ]);
+
+    if ($validator->fails()) {
+      return response()->json(data: [
+        'error' => 'Validation Error',
+        'message' => $validator->errors()
+      ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
 
     try {
 
-      $size = Size::findOrFail($id);
+      $size = Size::findOrFail(id: $id);
 
       if ($size) {
         $size->update($request->all());
 
         $all_sizes = Size::all();
 
-        return response()->json([
+        return response()->json(data: [
           'response' => [
             'status' => true,
-            'data' => $size
+            'data' => $all_sizes
           ]
-        ]);
+        ], status: Response::HTTP_OK);
       }
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (size)'
+      ], status: Response::HTTP_NOT_FOUND);
+
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (size)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 
@@ -106,7 +146,7 @@ class SizeController extends Controller
 
     try {
 
-      $size = Size::findOrFail($id);
+      $size = Size::findOrFail(id: $id);
 
       if ($size) {
 
@@ -122,8 +162,17 @@ class SizeController extends Controller
         ]);
       }
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (size)'
+      ], status: Response::HTTP_NOT_FOUND);
+
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (size)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 }

@@ -3,34 +3,46 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Validator;
 
 class ServiceController extends Controller
 {
   public function store(Request $request)
   {
 
-    $validated = $request->validate([
+    $validator = Validator::make(data: $request->all(), rules: [
       'name' => 'string|required'
     ]);
 
+    if ($validator->fails()) {
+      return response()->json(data: [
+        'error' => 'Validation Error',
+        'message' => $validator->errors()
+      ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
     try {
-      $service = Service::create($request->all());
-      $all_services = Service::all();
+      $service = Service::create(attributes: $request->all());
 
       if ($service) {
-        return response()->json([
+        $all_services = Service::all();
+
+        return response()->json(data: [
           'response' => [
             "status" => true,
             "data" => $all_services
           ]
-        ]);
+        ], status: Response::HTTP_CREATED);
       }
 
-
-
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -39,15 +51,18 @@ class ServiceController extends Controller
     try {
       $all_services = Service::all();
 
-      return response()->json([
+      return response()->json(data: [
         'response' => [
           "status" => true,
           "data" => $all_services
         ]
-      ]);
+      ], status: Response::HTTP_OK);
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -55,22 +70,42 @@ class ServiceController extends Controller
   {
 
     try {
-      $service = Service::findOrFail($id);
+      $service = Service::findOrFail(id: $id);
 
-      return response()->json([
-        'response' => $service
-      ]);
+      if ($service) {
+        return response()->json(data: [
+          'response' => [
+            'status' => true,
+            'data' => $service
+          ]
+        ], status: Response::HTTP_OK);
+      }
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (service)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_NOT_FOUND);
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
   public function update(Request $request, string $id)
   {
-    $validated = $request->validate([
+    $validator = Validator::make(data: $request->all(), rules: [
       'name' => 'string|required'
     ]);
+
+    if ($validator->fails()) {
+      return response()->json(data: [
+        'error' => 'Validation Error',
+        'message' => $validator->errors()
+      ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
 
     try {
 
@@ -81,17 +116,20 @@ class ServiceController extends Controller
 
         $all_services = Service::all();
 
-        return response()->json([
+        return response()->json(data: [
           'response' => [
             "status" => true,
             "data" => $all_services
           ]
-        ]);
+        ], status: Response::HTTP_OK);
       }
 
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -107,16 +145,24 @@ class ServiceController extends Controller
 
         $all_services = Service::all();
 
-        return response()->json([
+        return response()->json(data: [
           'response' => [
             'status' => true,
             'data' => $all_services
           ]
-        ]);
+        ], status: Response::HTTP_OK);
       }
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (service)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_NOT_FOUND);
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 }
