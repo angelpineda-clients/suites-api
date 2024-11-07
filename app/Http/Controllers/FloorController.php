@@ -18,9 +18,17 @@ class FloorController extends Controller
     try {
       $floor = Floor::create($request->all());
 
-      return response()->json([
-        'data' => $floor
-      ]);
+      if ($floor) {
+        $all_floors = Floor::all();
+        return response()->json([
+          'response' => [
+            'data' => $all_floors,
+            'status' => true
+          ]
+        ]);
+      }
+
+
 
     } catch (\Throwable $th) {
       throw $th;
@@ -30,10 +38,13 @@ class FloorController extends Controller
   public function index()
   {
     try {
-      $floors = Floor::all();
+      $all_floors = Floor::all();
 
       return response()->json([
-        'data' => $floors
+        'response' => [
+          'data' => $all_floors,
+          'status' => true,
+        ]
       ]);
 
     } catch (\Throwable $th) {
@@ -48,7 +59,10 @@ class FloorController extends Controller
       $floor = Floor::findOrFail($id);
 
       return response()->json([
-        'data' => $floor
+        'response' => [
+          'status' => true,
+          'data' => $floor
+        ]
       ]);
 
     } catch (\Throwable $th) {
@@ -67,11 +81,18 @@ class FloorController extends Controller
 
       $floor = Floor::findOrFail($id);
 
-      $floor->update($request->all());
+      if ($floor) {
+        $floor->update($request->all());
 
-      return response()->json([
-        'data' => $floor
-      ]);
+        $all_floors = Floor::all();
+
+        return response()->json([
+          'response' => [
+            'data' => $all_floors,
+            'status' => true
+          ]
+        ]);
+      }
 
     } catch (\Throwable $th) {
       throw $th;
@@ -85,11 +106,18 @@ class FloorController extends Controller
 
       $floor = Floor::findOrFail($id);
 
-      $floor->delete();
+      if ($floor) {
+        $floor->delete();
 
-      return response()->json([
-        'data' => $floor->name . ' deleted'
-      ]);
+        $all_floors = Floor::all();
+
+        return response()->json([
+          'response' => [
+            'status' => true,
+            'data' => $all_floors
+          ]
+        ]);
+      }
 
     } catch (\Throwable $th) {
       throw $th;
