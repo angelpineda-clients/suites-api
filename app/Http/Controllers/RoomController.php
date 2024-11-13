@@ -9,113 +9,113 @@ use Str;
 
 class RoomController extends Controller
 {
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'string|required',
-            'price' => 'required'
-        ]) ;
+  public function store(Request $request)
+  {
+    $validated = $request->validate([
+      'name' => 'string|required',
+      'price' => 'required'
+    ]);
 
-        try {
-            $room = Room::create([
-                'name' => $request['name'],
-                'description' => $request['description'],
-                'capacity' => $request['capacity'],
-                'beds' => $request['beds'],
-                'price' => $request['price'],
-                'size_id' => $request['size_id'],
-                'floor_id' => $request['floor_id'],
-            ]);
+    try {
+      $room = Room::create([
+        'name' => $request['name'],
+        'description' => $request['description'],
+        'capacity' => $request['capacity'],
+        'beds' => $request['beds'],
+        'price' => $request['price'],
+        'size_id' => $request['size_id'],
+        'floor_id' => $request['floor_id'],
+      ]);
 
-            $services = $request->input('services[]');
+      $services = $request->input('services[]');
 
-            $room->services()->sync($services);
+      $room->services()->sync($services);
 
-            return response()->json([
-                'data' => $room
-            ]);
+      return response()->json([
+        'data' => $room
+      ]);
 
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function index()
-    {
-        try {
-            $rooms = Room::with('size', 'floor', 'services')->get();
+  public function index()
+  {
+    try {
+      $rooms = Room::with('size', 'floor', 'services')->get();
 
-            return response()->json([
-                'data' => $rooms
-            ]);
+      return response()->json([
+        'data' => $rooms
+      ]);
 
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function show(string $id)
-    {
-        
-        try{
-            $room = Room::where('id',$id)->with('size','floor', 'services')->first();
+  public function show(string $id)
+  {
 
-            if (!$room) {
-                return response()->json([
-                    'message' => "Results not found for id: $id"
-                ]);
-            }
+    try {
+      $room = Room::where('id', $id)->with('size', 'floor', 'services')->first();
 
-            return response()->json([
-                'data' => $room
-            ]);
+      if (!$room) {
+        return response()->json([
+          'message' => "Results not found for id: $id"
+        ]);
+      }
 
-        }catch(\Throwable $th){
-            throw $th;
-        }
+      return response()->json([
+        'data' => $room
+      ]);
+
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function update(Request $request, string $id)
-    {
-        try{
-            $room = Room::where('id', $id)->with('size', 'floor', 'services')->first();
+  public function update(Request $request, string $id)
+  {
+    try {
+      $room = Room::where('id', $id)->with('size', 'floor', 'services')->first();
 
-            $room->update([
-                'name' => $request['name'],
-                'description' => $request['description'],
-                'capacity' => $request['capacity'],
-                'beds' => $request['beds'],
-                'price' => $request['price'],
-                'size_id' => $request['size_id'],
-                'floor_id' => $request['floor_id'],
-            ]);
+      $room->update([
+        'name' => $request['name'],
+        'description' => $request['description'],
+        'capacity' => $request['capacity'],
+        'beds' => $request['beds'],
+        'price' => $request['price'],
+        'size_id' => $request['size_id'],
+        'floor_id' => $request['floor_id'],
+      ]);
 
-            $services = $request->input('services[]');
+      $services = $request->input('services[]');
 
-            $room->services()->sync($services);
+      $room->services()->sync($services);
 
-            return response()->json([
-                'data' => $room
-            ]);
+      return response()->json([
+        'data' => $room
+      ]);
 
-        }catch(\Throwable $th){
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 
-    public function delete(string $id)
-    {
-        try {
-            $room = Room::findOrFail($id);
+  public function delete(string $id)
+  {
+    try {
+      $room = Room::findOrFail($id);
 
-            $room->delete();
+      $room->delete();
 
-            return response()->json([
-                'data' => $room
-            ]);
+      return response()->json([
+        'data' => $room
+      ]);
 
-        } catch (\Throwable $th) {
-            throw $th;
-        }
+    } catch (\Throwable $th) {
+      throw $th;
     }
+  }
 }

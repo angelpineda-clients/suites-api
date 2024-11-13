@@ -25,18 +25,20 @@ class SeasonController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
       $season = Season::create(attributes: $request->all());
 
       if ($season) {
 
-        $all_seasons = Season::all();
+        $query = Season::query();
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
         return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $all_seasons
-          ]
+          $data
         ], status: Response::HTTP_CREATED);
       }
 
@@ -48,19 +50,25 @@ class SeasonController extends Controller
     }
   }
 
-  public function index()
+  public function index(Request $request)
   {
-    try {
-      $all_seasons = Season::all();
+    $page = $request->input(key: 'page', default: 1);
+    $search = $request->input(key: 'search', default: '');
+    $column = $request->input(key: 'column', default: 'name');
+    $per_page = $request->input(key: 'per_page', default: 10);
 
-      if ($all_seasons) {
-        return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $all_seasons
-          ]
-        ], status: Response::HTTP_OK);
+    try {
+      $query = Season::query();
+
+      if ($search) {
+        $query->where(column: $column, operator: 'like', value: '%' . $search . '%');
       }
+
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
+
+      return response()->json(data: [
+        $data
+      ], status: Response::HTTP_OK);
 
     } catch (\Exception $e) {
       return response()->json(data: [
@@ -74,16 +82,11 @@ class SeasonController extends Controller
   {
 
     try {
-      $season = Season::findOrFail(id: $id);
+      $data = Season::findOrFail(id: $id);
 
-      if ($season) {
-        return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $season
-          ]
-        ]);
-      }
+      return response()->json(data: [
+        $data
+      ], status: Response::HTTP_OK);
 
     } catch (ModelNotFoundException $e) {
       return response()->json(data: [
@@ -112,6 +115,9 @@ class SeasonController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
 
       $season = Season::findOrFail(id: $id);
@@ -119,13 +125,12 @@ class SeasonController extends Controller
       if ($season) {
         $season->update($request->all());
 
-        $all_seasons = Season::all();
+        $query = Season::query();
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
         return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $all_seasons
-          ]
+          $data
         ], status: Response::HTTP_OK);
       }
 
@@ -144,22 +149,22 @@ class SeasonController extends Controller
 
   public function delete(Request $request, string $id)
   {
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
 
     try {
 
-      $season = Season::findOrFail($id);
+      $season = Season::findOrFail(id: $id);
 
       if ($season) {
         $season->delete();
 
-        $all_seasons = Season::all();
+        $query = Season::query();
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
-        return response()->json([
-          'response' => [
-            'status' => true,
-            'data' => $all_seasons
-          ]
-        ]);
+        return response()->json(data: [
+          $data
+        ], status: Response::HTTP_OK);
       }
 
     } catch (ModelNotFoundException $e) {

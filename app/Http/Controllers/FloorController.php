@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Validator;
 
+
 class FloorController extends Controller
 {
   public function store(Request $request)
@@ -25,16 +26,18 @@ class FloorController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
       $floor = Floor::create(attributes: $request->all());
 
       if ($floor) {
-        $all_floors = Floor::all();
+        $query = Floor::query();
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
         return response()->json(data: [
-          'response' => [
-            'data' => $all_floors,
-            'status' => true
-          ]
+          $data,
         ], status: Response::HTTP_CREATED);
       }
 
@@ -46,16 +49,24 @@ class FloorController extends Controller
     }
   }
 
-  public function index()
+  public function index(Request $request)
   {
-    try {
-      $all_floors = Floor::all();
+    $page = $request->input(key: 'page', default: 1);
+    $search = $request->input(key: 'search', default: '');
+    $column = $request->input(key: 'column', default: 'name');
+    $per_page = $request->input(key: 'per_page', default: 10);
 
+    try {
+
+      $query = Floor::query();
+
+      if ($search) {
+        $query->where(column: $column, operator: 'like', value: '%' . $search . '%');
+      }
+
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
       return response()->json(data: [
-        'response' => [
-          'data' => $all_floors,
-          'status' => true,
-        ]
+        $data,
       ], status: Response::HTTP_OK);
 
     } catch (\Exception $e) {
@@ -70,13 +81,10 @@ class FloorController extends Controller
   {
 
     try {
-      $floor = Floor::findOrFail(id: $id);
+      $data = Floor::findOrFail(id: $id);
 
       return response()->json(data: [
-        'response' => [
-          'status' => true,
-          'data' => $floor
-        ]
+        $data
       ], status: Response::HTTP_OK);
 
     } catch (ModelNotFoundException $e) {
@@ -108,6 +116,9 @@ class FloorController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
 
       $floor = Floor::findOrFail(id: $id);
@@ -115,13 +126,11 @@ class FloorController extends Controller
       if ($floor) {
         $floor->update($request->all());
 
-        $all_floors = Floor::all();
+        $query = Floor::query();
 
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
         return response()->json(data: [
-          'response' => [
-            'data' => $all_floors,
-            'status' => true
-          ]
+          $data,
         ], status: Response::HTTP_OK);
       }
 
@@ -136,6 +145,9 @@ class FloorController extends Controller
   public function delete(Request $request, string $id)
   {
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
 
       $floor = Floor::findOrFail(id: $id);
@@ -143,13 +155,11 @@ class FloorController extends Controller
       if ($floor) {
         $floor->delete();
 
-        $all_floors = Floor::all();
+        $query = Floor::query();
 
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
         return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $all_floors
-          ]
+          $data,
         ], status: Response::HTTP_OK);
       }
 

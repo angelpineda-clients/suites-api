@@ -25,18 +25,20 @@ class SizeController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
       $size = Size::create(attributes: $request->all());
 
       if ($size) {
 
-        $all_sizes = Size::all();
+        $query = Size::query();
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
         return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $all_sizes
-          ]
+          $data
         ], status: Response::HTTP_CREATED);
       }
 
@@ -48,16 +50,25 @@ class SizeController extends Controller
     }
   }
 
-  public function index()
+  public function index(Request $request)
   {
+
+    $page = $request->input(key: 'page', default: 1);
+    $search = $request->input(key: 'search', default: '');
+    $column = $request->input(key: 'column', default: 'name');
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
-      $all_sizes = Size::all();
+      $query = Size::query();
+
+      if ($search) {
+        $query->where(column: $column, operator: 'like', value: '%' . $search . '%');
+      }
+
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
       return response()->json(data: [
-        'response' => [
-          'status' => true,
-          'data' => $all_sizes
-        ]
+        $data
       ], status: Response::HTTP_OK);
 
     } catch (\Exception $e) {
@@ -72,13 +83,10 @@ class SizeController extends Controller
   {
 
     try {
-      $size = Size::findOrFail(id: $id);
+      $data = Size::findOrFail(id: $id);
 
-      return response()->json([
-        'response' => [
-          'response' => true,
-          'data' => $size
-        ]
+      return response()->json(data: [
+        $data
       ]);
 
     } catch (ModelNotFoundException $e) {
@@ -110,6 +118,9 @@ class SizeController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
 
       $size = Size::findOrFail(id: $id);
@@ -117,13 +128,11 @@ class SizeController extends Controller
       if ($size) {
         $size->update($request->all());
 
-        $all_sizes = Size::all();
+        $query = Size::query();
 
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
         return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $all_sizes
-          ]
+          $data,
         ], status: Response::HTTP_OK);
       }
 
@@ -143,6 +152,8 @@ class SizeController extends Controller
 
   public function delete(Request $request, string $id)
   {
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
 
     try {
 
@@ -152,14 +163,12 @@ class SizeController extends Controller
 
         $size->delete();
 
-        $all_sizes = Size::all();
+        $query = Size::query();
 
-        return response()->json([
-          'response' => [
-            'status' => true,
-            'data' => $all_sizes
-          ]
-        ]);
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
+        return response()->json(data: [
+          $data,
+        ], status: Response::HTTP_OK);
       }
 
     } catch (ModelNotFoundException $e) {

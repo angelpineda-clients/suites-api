@@ -24,17 +24,19 @@ class ServiceController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
       $service = Service::create(attributes: $request->all());
 
       if ($service) {
-        $all_services = Service::all();
+        $query = Service::query();
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
         return response()->json(data: [
-          'response' => [
-            "status" => true,
-            "data" => $all_services
-          ]
+          $data
         ], status: Response::HTTP_CREATED);
       }
 
@@ -46,16 +48,24 @@ class ServiceController extends Controller
     }
   }
 
-  public function index()
+  public function index(Request $request)
   {
+    $page = $request->input(key: 'page', default: 1);
+    $search = $request->input(key: 'search', default: '');
+    $column = $request->input(key: 'column', default: 'name');
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
-      $all_services = Service::all();
+      $query = Service::query();
+
+      if ($search) {
+        $query->where(column: $column, operator: 'like', value: '%' . $search . '%');
+      }
+
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
       return response()->json(data: [
-        'response' => [
-          "status" => true,
-          "data" => $all_services
-        ]
+        $data
       ], status: Response::HTTP_OK);
 
     } catch (\Exception $e) {
@@ -70,16 +80,12 @@ class ServiceController extends Controller
   {
 
     try {
-      $service = Service::findOrFail(id: $id);
+      $data = Service::findOrFail(id: $id);
 
-      if ($service) {
-        return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $service
-          ]
-        ], status: Response::HTTP_OK);
-      }
+      return response()->json(data: [
+        $data
+      ], status: Response::HTTP_OK);
+
 
     } catch (ModelNotFoundException $e) {
       return response()->json(data: [
@@ -107,20 +113,22 @@ class ServiceController extends Controller
       ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
 
-      $service = Service::findOrFail($id);
+      $service = Service::findOrFail(id: $id);
 
       if ($service) {
         $service->update($request->all());
 
-        $all_services = Service::all();
+        $query = Service::query();
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
         return response()->json(data: [
-          'response' => [
-            "status" => true,
-            "data" => $all_services
-          ]
+          $data
         ], status: Response::HTTP_OK);
       }
 
@@ -135,21 +143,22 @@ class ServiceController extends Controller
 
   public function delete(Request $request, string $id)
   {
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
 
     try {
 
-      $service = Service::findOrFail($id);
+      $service = Service::findOrFail(id: $id);
 
       if ($service) {
         $service->delete();
 
-        $all_services = Service::all();
+        $query = Service::query();
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
         return response()->json(data: [
-          'response' => [
-            'status' => true,
-            'data' => $all_services
-          ]
+          $data
         ], status: Response::HTTP_OK);
       }
 
