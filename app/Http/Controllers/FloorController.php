@@ -134,11 +134,18 @@ class FloorController extends Controller
         ], status: Response::HTTP_OK);
       }
 
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (floor)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_NOT_FOUND);
+
     } catch (\Exception $e) {
       return response()->json(data: [
         'error' => 'Not expected error (floor)',
         'message' => $e->getMessage()
       ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 

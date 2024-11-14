@@ -3,54 +3,86 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\TryCatch;
 use Str;
+use Symfony\Component\HttpFoundation\Response;
+use Validator;
 
 class RoomController extends Controller
 {
   public function store(Request $request)
   {
-    $validated = $request->validate([
+    $validator = Validator::make(data: $request->all(), rules: [
       'name' => 'string|required',
       'price' => 'required'
     ]);
 
+    if ($validator->fails()) {
+
+      return response()->json(data: [
+        'error' => 'Validation Error',
+        'message' => $validator->errors()
+      ], status: Response::HTTP_BAD_REQUEST);
+    }
+
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
-      $room = Room::create([
-        'name' => $request['name'],
-        'description' => $request['description'],
-        'capacity' => $request['capacity'],
-        'beds' => $request['beds'],
-        'price' => $request['price'],
-        'size_id' => $request['size_id'],
-        'floor_id' => $request['floor_id'],
+
+      $attributes = $request->except(keys: 'services[]');
+      $services = $request->input(key: 'services[]');
+
+      $room = Room::create(attributes: $attributes);
+
+      if ($room) {
+        $room->services()->sync($services);
+      }
+
+      $query = Room::query()->with(relations: ['floor', 'size', 'services']);
+
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
+
+      return response()->json(data: [
+        $data
       ]);
 
-      $services = $request->input('services[]');
-
-      $room->services()->sync($services);
-
-      return response()->json([
-        'data' => $room
-      ]);
-
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (room)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
-  public function index()
+  public function index(Request $request)
   {
+    $page = $request->input(key: 'page', default: 1);
+    $search = $request->input(key: 'search', default: '');
+    $column = $request->input(key: 'column', default: 'name');
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
-      $rooms = Room::with('size', 'floor', 'services')->get();
 
-      return response()->json([
-        'data' => $rooms
-      ]);
+      $query = Room::query()->with(relations: ['floor', 'size', 'services']);
 
-    } catch (\Throwable $th) {
-      throw $th;
+      if ($search) {
+        $query->where(column: $column, operator: 'like', value: '%' . $search . '%');
+      }
+
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
+
+      return response()->json(data: [
+        $data
+      ], status: Response::HTTP_OK);
+
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (floor)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -58,64 +90,113 @@ class RoomController extends Controller
   {
 
     try {
-      $room = Room::where('id', $id)->with('size', 'floor', 'services')->first();
+      $data = Room::where(column: 'id', operator: $id)->with(relations: ['floor', 'size', 'services'])->get();
 
-      if (!$room) {
-        return response()->json([
-          'message' => "Results not found for id: $id"
-        ]);
-      }
+      return response()->json(data: [
+        $data
+      ], status: Response::HTTP_OK);
 
-      return response()->json([
-        'data' => $room
-      ]);
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (floor)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_NOT_FOUND);
 
-    } catch (\Throwable $th) {
-      throw $th;
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (floor)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 
   public function update(Request $request, string $id)
   {
+
+    $validator = Validator::make(data: $request->all(), rules: [
+      'name' => 'string|required',
+      'price' => 'required'
+    ]);
+
+    if ($validator->fails()) {
+
+      return response()->json(data: [
+        'error' => 'Validation Error',
+        'message' => $validator->errors()
+      ], status: Response::HTTP_BAD_REQUEST);
+    }
+
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
+
     try {
-      $room = Room::where('id', $id)->with('size', 'floor', 'services')->first();
+      $room = Room::findOrFail(id: $id);
 
-      $room->update([
-        'name' => $request['name'],
-        'description' => $request['description'],
-        'capacity' => $request['capacity'],
-        'beds' => $request['beds'],
-        'price' => $request['price'],
-        'size_id' => $request['size_id'],
-        'floor_id' => $request['floor_id'],
-      ]);
+      $attributes = $request->except(keys: 'services[]');
+      $services = $request->input(key: 'services[]');
 
-      $services = $request->input('services[]');
+      if ($room) {
+        $room->update(attributes: $attributes);
+        $room->services()->sync($services);
+      }
 
-      $room->services()->sync($services);
+      $query = Room::query()->with(relations: ['floor', 'size', 'services']);
 
-      return response()->json([
-        'data' => $room
-      ]);
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
-    } catch (\Throwable $th) {
-      throw $th;
+      return response()->json(data: [
+        $data
+      ], status: Response::HTTP_OK);
+
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (room)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_NOT_FOUND);
+
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (room)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 
-  public function delete(string $id)
+  public function delete(Request $request, string $id)
   {
+    $page = $request->input(key: 'page', default: 1);
+    $per_page = $request->input(key: 'per_page', default: 10);
     try {
-      $room = Room::findOrFail($id);
+      $room = Room::findOrFail(id: $id);
 
-      $room->delete();
+      if ($room) {
 
-      return response()->json([
-        'data' => $room
-      ]);
 
-    } catch (\Throwable $th) {
-      throw $th;
+        $room->delete();
+
+        $query = Room::query()->with(relations: ['floor', 'size', 'services']);
+
+        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
+
+        return response()->json(data: [
+          $data
+        ], status: Response::HTTP_OK);
+      }
+
+    } catch (ModelNotFoundException $e) {
+      return response()->json(data: [
+        'error' => 'Resource not found (room)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_NOT_FOUND);
+
+    } catch (\Exception $e) {
+      return response()->json(data: [
+        'error' => 'Not expected error (room)',
+        'message' => $e->getMessage()
+      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 }
