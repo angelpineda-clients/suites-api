@@ -7,35 +7,40 @@ use Str;
 
 class Room extends BaseModel
 {
-    use HasFactory;
+  use HasFactory;
 
-    protected $guarded = [];
+  protected $guarded = [];
 
-    public static function boot(): void
-    {
-        parent::boot();
+  public static function boot(): void
+  {
+    parent::boot();
 
-        static::creating(callback: function ($room) {
-            $room->slug = Str::slug($room->name);
-        });
+    static::creating(callback: function ($room) {
+      $room->slug = Str::slug($room->name);
+    });
 
-        static::updating(callback: function ($room) {
-            $room->slug = Str::slug($room->name);
-        });
-    }
+    static::updating(callback: function ($room) {
+      $room->slug = Str::slug($room->name);
+    });
+  }
 
-    public function size()
-    {
-        return $this->belongsTo(Size::class);
-    }
+  public function size()
+  {
+    return $this->belongsTo(Size::class);
+  }
 
-    public function floor()
-    {
-        return $this->belongsTo(Floor::class);
-    }
+  public function floor()
+  {
+    return $this->belongsTo(Floor::class);
+  }
 
-    public function services()
-    {
-        return $this->belongsToMany(Service::class, 'room_service');
-    }
+  public function services()
+  {
+    return $this->belongsToMany(Service::class, 'room_service');
+  }
+
+  public function images()
+  {
+    return $this->morphToMany('App\Models\Image', 'imageable');
+  }
 }

@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller as BaseController;
 
@@ -37,5 +38,19 @@ abstract class Controller extends BaseController
       'data' => $data,
       'pagination' => $pagination
     ];
+  }
+
+  /**
+   * Recorre un arreglo de imagenes y las elimina de la nube
+   * @param array $images
+   * @return void
+   */
+  protected function deleteImagesFromCloudinary($images)
+  {
+    foreach ($images as $image) {
+      if (isset($image->public_id)) {
+        Cloudinary::destroy(publicId: $image->public_id);
+      }
+    }
   }
 }

@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Image;
 use App\Models\Room;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use PhpParser\Node\Stmt\TryCatch;
-use Str;
 use Symfony\Component\HttpFoundation\Response;
 use Validator;
 
 class RoomController extends Controller
 {
+
+  use MediaAlly;
+
   public function store(Request $request)
   {
     $validator = Validator::make(data: $request->all(), rules: [
       'name' => 'string|required',
-      'price' => 'required'
+      'price' => 'required',
+      'images' => 'nullable|array',
+      'images.*' => 'file|image|max:2048'
     ]);
 
     if ($validator->fails()) {
@@ -32,16 +38,34 @@ class RoomController extends Controller
 
     try {
 
-      $attributes = $request->except(keys: 'services[]');
-      $services = $request->input(key: 'services[]');
+      $attributes = $request->except(keys: ['services', 'images', 'per_page', 'page']);
 
       $room = Room::create(attributes: $attributes);
 
       if ($room) {
+        $services = $request->input(key: 'services');
         $room->services()->sync($services);
+
+        $files = $request->file(key: 'images');
+
+        if (isset($files)) {
+
+          foreach ($files as $file) {
+            $cloudinary_result = Cloudinary::upload($file->getRealPath());
+
+            if ($cloudinary_result) {
+              $image = new Image();
+              $image->url = $cloudinary_result->getSecurePath();
+              $image->public_id = $cloudinary_result->getPublicId();
+              $image->save();
+
+              $room->images()->attach($image->id);
+            }
+          }
+        }
       }
 
-      $query = Room::query()->with(relations: ['floor', 'size', 'services']);
+      $query = Room::query()->with(relations: ['floor', 'size', 'services', 'images']);
 
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
@@ -66,7 +90,7 @@ class RoomController extends Controller
 
     try {
 
-      $query = Room::query()->with(relations: ['floor', 'size', 'services']);
+      $query = Room::query()->with(relations: ['floor', 'size', 'services', 'images']);
 
       if ($search) {
         $query->where(column: $column, operator: 'like', value: '%' . $search . '%');
@@ -173,6 +197,7 @@ class RoomController extends Controller
 
       if ($room) {
 
+        $this->deleteImagesFromCloudinary(images: $room->images);
 
         $room->delete();
 
