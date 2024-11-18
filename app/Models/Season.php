@@ -9,7 +9,7 @@ class Season extends BaseModel
 {
   use HasFactory;
 
-  protected $fillable = ['name', 'alias'];
+  protected $fillable = ['name', 'alias', 'initial_date', 'final_date'];
   protected $guard = [];
 
   protected function name(): Attribute

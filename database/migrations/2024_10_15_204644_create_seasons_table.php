@@ -14,6 +14,10 @@ return new class extends Migration {
       $table->id();
       $table->string('name')->require();
       $table->string('alias')->nullable();
+      $table->string('initial_month')->require();
+      $table->string('initial_day')->require();
+      $table->string('final_month')->require();
+      $table->string('final_day')->require();
       $table->timestamps();
     });
   }

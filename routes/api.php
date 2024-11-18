@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FloorController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SeasonController;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 })->middleware('auth:sanctum'); */
 
 Route::post('register', [AuthController::class, 'register']);
-
+Route::post('refresh', [AuthController::class, 'refresh']);
 
 Route::get('service', [ServiceController::class, 'index']);
 Route::get('service/{id}', [ServiceController::class, 'show']);
@@ -31,8 +32,8 @@ Route::get('season/{id}', [SeasonController::class, 'show']);
 Route::get('room', [RoomController::class, 'index']);
 Route::get('room/{id}', [RoomController::class, 'show']);
 
-Route::post('refresh', [AuthController::class, 'refresh']);
-
+Route::get('image', [ImageController::class, 'index']);
+Route::get('image/{id}', [ImageController::class, 'show']);
 
 Route::group([
   'middleware' => 'api',
@@ -68,4 +69,8 @@ Route::group([
   Route::post('room', [RoomController::class, 'store'])->middleware(['role:manager|admin']);
   Route::put('room/{id}', [RoomController::class, 'update'])->middleware(['role:manager|admin']);
   Route::delete('room/{id}', [RoomController::class, 'delete'])->middleware(['role:manager|admin']);
+
+  Route::post('image', [ImageController::class, 'store'])->middleware(['role:manager|admin']);
+  Route::put('image/{id}', [ImageController::class, 'update'])->middleware(['role:manager|admin']);
+  Route::delete('image/{id}', [ImageController::class, 'delete'])->middleware(['role:manager|admin']);
 });
