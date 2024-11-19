@@ -56,17 +56,12 @@ class ImageController extends Controller
         $entity->images()->attach($image->id);
       }
 
+      $entity = match ($model_type) {
+        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        default => null,
+      };
 
-      $model_instance = null;
-
-      if ($model_type && $model_id) {
-        $model_instance = match ($model_type) {
-          'room' => Room::find(id: $model_id)->with(['images'])->first(),
-          default => null,
-        };
-      }
-
-      $images = $model_instance->images;
+      $images = $entity->images;
 
       return ApiResponse::success(data: $images);
     } catch (\Exception $e) {
@@ -93,16 +88,16 @@ class ImageController extends Controller
 
     try {
 
-      $model_instance = null;
-
-      if ($model_type && $model_id) {
-        $model_instance = match ($model_type) {
-          'room' => Room::find(id: $model_id)->with(['images'])->first(),
-          default => null,
-        };
+      if (!$model_type || !$model_id) {
+        return ApiResponse::success(data: []);
       }
 
-      $images = $model_instance->images;
+      $entity = match ($model_type) {
+        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        default => null,
+      };
+
+      $images = $entity->images;
 
       return ApiResponse::success(data: $images);
 
@@ -167,16 +162,16 @@ class ImageController extends Controller
       $image->public_id = $cloudinary_result->getPublicId();
       $image->save();
 
-      $model_instance = null;
-
-      if ($model_type && $model_id) {
-        $model_instance = match ($model_type) {
-          'room' => Room::find(id: $model_id)->with(['images'])->first(),
-          default => null,
-        };
+      if (!$model_type || !$model_id) {
+        return ApiResponse::success(data: $image, );
       }
 
-      $images = $model_instance->images;
+      $entity = match ($model_type) {
+        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        default => null,
+      };
+
+      $images = $entity->images;
 
       return ApiResponse::success(data: $images);
 
@@ -214,23 +209,18 @@ class ImageController extends Controller
         $image->delete();
       }
 
-      // data: get model
-      $result = match ($model_type) {
-        'room' => Room::find(id: $model_id),
-        default => null
-      };
-
       // data: build data to return
-      $model_instance = null;
-
-      if ($model_type && $model_id) {
-        $model_instance = match ($model_type) {
-          'room' => Room::find(id: $model_id)->with(['images'])->first(),
-          default => null,
-        };
+      if (!$model_type || !$model_id) {
+        return ApiResponse::success(data: $image, );
       }
 
-      $images = $model_instance->images;
+      $entity = match ($model_type) {
+        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        default => null,
+      };
+
+      $images = $entity->images;
+
 
       return ApiResponse::success(data: $images);
 
