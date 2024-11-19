@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\JWTAuth;
 
@@ -21,26 +23,24 @@ class AuthController extends Controller
     ]);
 
     try {
-      $user = User::create($request->all());
+      $user = User::create(attributes: $request->all());
 
-      return response()->json([
-        'data' => $user
-      ]);
+      return ApiResponse::success(data: $user, message: 'User registered', code: Response::HTTP_CREATED);
 
-    } catch (\Throwable $th) {
+    } catch (\Exception $e) {
 
-      return response()->json([
-        'message' => 'error: ' . $th->getMessage()
-      ]);
+      return ApiResponse::error(message: 'Error trying to register', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+
     }
   }
 
   public function login(Request $request)
   {
-    $credentials = request(['email', 'password']);
+    $credentials = request(key: ['email', 'password']);
 
-    if (!$token = auth()->attempt($credentials)) {
-      return response()->json(["message" => "Unauthorized"], 401);
+    if (!$token = auth()->attempt(credentials: $credentials)) {
+      return ApiResponse::error(message: "Unauthorized", errors: '', code: Response::HTTP_UNAUTHORIZED);
+
     }
 
     return $this->respondWithToken($token);
@@ -51,46 +51,43 @@ class AuthController extends Controller
     try {
       auth()->logout(true);
 
-      return response()->json(['message' => 'Successfully logged out']);
-    } catch (\Throwable $th) {
-      return response()->json([
-        'message' => 'Error: ' . $th->getMessage()
-      ]);
+      return ApiResponse::success(data: 'Successfully logged out');
+    } catch (\Exception $e) {
+      return ApiResponse::error(message: 'Error trying to logout', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
   public function refresh(Request $request)
   {
     try {
-      // Obtener el refresh token desde el cuerpo de la solicitud
-      $refreshToken = $request->input('refresh_token');
 
-      // Configura el refresh token en JWTAuth para generar un nuevo access token
-      auth()->setToken($refreshToken);
+      $refreshToken = $request->input(key: 'refresh_token');
+
+      // set refresh token to generate new one
+      auth()->setToken(token: $refreshToken);
       $newAccessToken = auth()->refresh();
 
-      // Retorna el nuevo access_token en la respuesta
-      return $this->respondWithToken($newAccessToken);
+      // Retorn new token
+      return $this->respondWithToken(token: $newAccessToken);
     } catch (JWTException $e) {
-      // Si ocurre un error, responder con un código de error
-      return response()->json(['error' => 'Refresh token inválido o expirado'], 401);
+      return ApiResponse::error(message: 'Error generation refresh token', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
-
   }
 
 
   protected function respondWithToken($token)
   {
-    return response()->json([
-      'data' => [
-        'auth' => [
-          'access_token' => $token,
-          'token_type' => 'bearer',
-          'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
-          'refresh_token' => Auth::guard('api')->refresh(),
-        ],
-        'user' => auth()->user()
+    $data = [
+      'auth' => [
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
+        'refresh_token' => Auth::guard('api')->refresh(),
       ],
-    ]);
+      'user' => auth()->user()
+    ];
+
+    return ApiResponse::success(data: $data);
+
   }
 }

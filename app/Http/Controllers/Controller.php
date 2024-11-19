@@ -35,7 +35,7 @@ abstract class Controller extends BaseController
     ];
 
     return [
-      'data' => $data,
+      'items' => $data,
       'pagination' => $pagination
     ];
   }
