@@ -8,9 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Image extends Model
 {
 
-
   public function imageable()
   {
-    return $this->morphedByMany('App\Models\Imageable', 'imageable');
+    return $this->morphedByMany(related: 'App\Models\Imageable', name: 'imageable');
   }
 }

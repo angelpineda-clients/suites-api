@@ -51,7 +51,7 @@ class RoomController extends Controller
         if (isset($files)) {
 
           foreach ($files as $file) {
-            $cloudinary_result = Cloudinary::upload($file->getRealPath());
+            $cloudinary_result = Cloudinary::upload(file: $file->getRealPath());
 
             if ($cloudinary_result) {
               $image = new Image();

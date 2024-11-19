@@ -41,6 +41,6 @@ class Room extends BaseModel
 
   public function images()
   {
-    return $this->morphToMany('App\Models\Image', 'imageable');
+    return $this->morphToMany(Image::class, 'imageable');
   }
 }
