@@ -63,7 +63,7 @@ class ImageController extends Controller
 
       $images = $entity->images;
 
-      return ApiResponse::success(data: $images);
+      return ApiResponse::success(data: $images, message: '', code: Response::HTTP_CREATED);
     } catch (\Exception $e) {
 
       ApiResponse::error(message: 'Not expected error', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -103,7 +103,7 @@ class ImageController extends Controller
 
     } catch (\Exception $e) {
 
-      return ApiResponse::error(message: 'Not expected error (image)', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
 
     }
   }
@@ -116,10 +116,10 @@ class ImageController extends Controller
       return ApiResponse::success(data: $image);
     } catch (ModelNotFoundException $e) {
 
-      return ApiResponse::error(message: 'Resource not found (image)', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
 
-      return ApiResponse::error(message: 'Not expected error (image)', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -177,10 +177,10 @@ class ImageController extends Controller
 
     } catch (ModelNotFoundException $e) {
 
-      return ApiResponse::error(message: 'Resource not found (image)', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
+      return ApiResponse::error(message: 'Resource not found', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
 
-      return ApiResponse::error(message: 'Not expected error (image)', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+      return ApiResponse::error(message: 'Not expected error', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -226,10 +226,10 @@ class ImageController extends Controller
 
     } catch (ModelNotFoundException $e) {
 
-      return ApiResponse::error(message: 'Resource not found (image)', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
 
-      return ApiResponse::error(message: 'Not expected error (image)', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 }

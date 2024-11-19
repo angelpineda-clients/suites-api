@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use App\Models\Floor;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -20,10 +21,7 @@ class FloorController extends Controller
     ]);
 
     if ($validator->fails()) {
-      return response()->json(data: [
-        'error' => 'Validation Error',
-        'message' => $validator->errors()
-      ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
+      return ApiResponse::error(message: 'Validation error', errors: $validator->errors());
     }
 
     $page = $request->input(key: 'page', default: 1);
@@ -36,16 +34,13 @@ class FloorController extends Controller
         $query = Floor::query();
 
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
-        return response()->json(data: [
-          $data,
-        ], status: Response::HTTP_CREATED);
+
+        return ApiResponse::success(data: $data, message: "", code: Response::HTTP_CREATED);
       }
 
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -65,15 +60,12 @@ class FloorController extends Controller
       }
 
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
-      return response()->json(data: [
-        $data,
-      ], status: Response::HTTP_OK);
+
+      return ApiResponse::success(data: $data);
 
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -83,22 +75,14 @@ class FloorController extends Controller
     try {
       $data = Floor::findOrFail(id: $id);
 
-      return response()->json(data: [
-        $data
-      ], status: Response::HTTP_OK);
+      return ApiResponse::success(data: $data);
 
     } catch (ModelNotFoundException $e) {
-      return response()->json(data: [
-        'error' => 'Resource not found (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_NOT_FOUND);
 
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
 
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -110,10 +94,7 @@ class FloorController extends Controller
     ]);
 
     if ($validator->fails()) {
-      return response()->json(data: [
-        'error' => 'Validation Error',
-        'message' => $validator->errors()
-      ], status: Response::HTTP_UNPROCESSABLE_ENTITY);
+      return ApiResponse::error(message: 'Validation error', errors: $validator->errors());
     }
 
     $page = $request->input(key: 'page', default: 1);
@@ -129,23 +110,16 @@ class FloorController extends Controller
         $query = Floor::query();
 
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
-        return response()->json(data: [
-          $data,
-        ], status: Response::HTTP_OK);
+
+        return ApiResponse::success(data: $data);
       }
 
     } catch (ModelNotFoundException $e) {
-      return response()->json(data: [
-        'error' => 'Resource not found (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_NOT_FOUND);
 
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
 
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -165,20 +139,16 @@ class FloorController extends Controller
         $query = Floor::query();
 
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
-        return response()->json(data: [
-          $data,
-        ], status: Response::HTTP_OK);
+
+        return ApiResponse::success(data: $data);
       }
 
     } catch (ModelNotFoundException $e) {
-      return response()->json(data: [
-        'error' => 'Resource not found (floor)',
-      ], status: Response::HTTP_NOT_FOUND);
+
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 }

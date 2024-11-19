@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use App\Models\Image;
 use App\Models\Room;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -26,11 +27,7 @@ class RoomController extends Controller
     ]);
 
     if ($validator->fails()) {
-
-      return response()->json(data: [
-        'error' => 'Validation Error',
-        'message' => $validator->errors()
-      ], status: Response::HTTP_BAD_REQUEST);
+      return ApiResponse::error(message: 'Validation error', errors: $validator->errors());
     }
 
     $page = $request->input(key: 'page', default: 1);
@@ -69,15 +66,11 @@ class RoomController extends Controller
 
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
-      return response()->json(data: [
-        $data
-      ]);
+      return ApiResponse::success(data: $data, message: "", code: Response::HTTP_CREATED);
 
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (room)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -98,15 +91,10 @@ class RoomController extends Controller
 
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
-      return response()->json(data: [
-        $data
-      ], status: Response::HTTP_OK);
+      return ApiResponse::success(data: $data);
 
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -116,22 +104,14 @@ class RoomController extends Controller
     try {
       $data = Room::where(column: 'id', operator: $id)->with(relations: ['floor', 'size', 'services'])->get();
 
-      return response()->json(data: [
-        $data
-      ], status: Response::HTTP_OK);
+      return ApiResponse::success(data: $data);
 
     } catch (ModelNotFoundException $e) {
-      return response()->json(data: [
-        'error' => 'Resource not found (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_NOT_FOUND);
 
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (floor)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
 
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -144,11 +124,7 @@ class RoomController extends Controller
     ]);
 
     if ($validator->fails()) {
-
-      return response()->json(data: [
-        'error' => 'Validation Error',
-        'message' => $validator->errors()
-      ], status: Response::HTTP_BAD_REQUEST);
+      return ApiResponse::error(message: 'Validation error', errors: $validator->errors());
     }
 
     $page = $request->input(key: 'page', default: 1);
@@ -169,22 +145,14 @@ class RoomController extends Controller
 
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
-      return response()->json(data: [
-        $data
-      ], status: Response::HTTP_OK);
+      return ApiResponse::success(data: $data);
 
     } catch (ModelNotFoundException $e) {
-      return response()->json(data: [
-        'error' => 'Resource not found (room)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_NOT_FOUND);
 
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (room)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
 
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -205,23 +173,15 @@ class RoomController extends Controller
 
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
-        return response()->json(data: [
-          $data
-        ], status: Response::HTTP_OK);
+        return ApiResponse::success($data);
       }
 
     } catch (ModelNotFoundException $e) {
-      return response()->json(data: [
-        'error' => 'Resource not found (room)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_NOT_FOUND);
 
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
-      return response()->json(data: [
-        'error' => 'Not expected error (room)',
-        'message' => $e->getMessage()
-      ], status: Response::HTTP_INTERNAL_SERVER_ERROR);
 
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 }
