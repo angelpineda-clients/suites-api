@@ -39,11 +39,11 @@ class AuthController extends Controller
     $credentials = request(key: ['email', 'password']);
 
     if (!$token = auth()->attempt(credentials: $credentials)) {
-      return ApiResponse::error(message: "Unauthorized", errors: '', code: Response::HTTP_UNAUTHORIZED);
+      return ApiResponse::error(message: "Wrong credentials", errors: '', code: Response::HTTP_UNAUTHORIZED);
 
     }
 
-    return $this->respondWithToken($token);
+    return $this->respondWithToken(token: $token);
   }
 
   public function logout()

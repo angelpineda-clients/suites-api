@@ -12,12 +12,10 @@ return new class extends Migration {
   {
     Schema::create('seasons', function (Blueprint $table) {
       $table->id();
-      $table->string('name')->require();
-      $table->string('alias')->nullable();
-      $table->string('initial_month')->require();
-      $table->string('initial_day')->require();
-      $table->string('final_month')->require();
-      $table->string('final_day')->require();
+      $table->string(column: 'name')->require();
+      $table->string(column: 'alias')->nullable();
+      $table->date(column: 'initial_date')->require();
+      $table->date(column: 'final_date')->require();
       $table->timestamps();
     });
   }
