@@ -19,11 +19,12 @@ class RoomController extends Controller
 
   public function store(Request $request)
   {
+
     $validator = Validator::make(data: $request->all(), rules: [
       'name' => 'string|required',
       'price' => 'required',
       'images' => 'nullable|array',
-      'images.*' => 'file|image|max:2048'
+      'images.*' => 'image|mimes:jpeg,png,gif|max:2048'
     ]);
 
     if ($validator->fails()) {
