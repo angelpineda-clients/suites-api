@@ -12,8 +12,10 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Validator;
 
+
 class RoomController extends Controller
 {
+  private const RELATIONS = ['floor', 'size', 'services', 'images'];
 
   use MediaAlly;
 
@@ -63,7 +65,7 @@ class RoomController extends Controller
         }
       }
 
-      $query = Room::query()->with(relations: ['floor', 'size', 'services', 'images']);
+      $query = Room::query()->with(relations: self::RELATIONS);
 
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
@@ -84,7 +86,7 @@ class RoomController extends Controller
 
     try {
 
-      $query = Room::query()->with(relations: ['floor', 'size', 'services', 'images']);
+      $query = Room::query()->with(relations: self::RELATIONS);
 
       if ($search) {
         $query->where(column: $column, operator: 'like', value: '%' . $search . '%');
@@ -103,7 +105,7 @@ class RoomController extends Controller
   {
 
     try {
-      $data = Room::where(column: 'id', operator: $id)->with(relations: ['floor', 'size', 'services'])->get();
+      $data = Room::where(column: 'id', operator: $id)->with(relations: self::RELATIONS)->first();
 
       return ApiResponse::success(data: $data);
 
@@ -134,19 +136,17 @@ class RoomController extends Controller
     try {
       $room = Room::findOrFail(id: $id);
 
-      $attributes = $request->except(keys: 'services[]');
-      $services = $request->input(key: 'services[]');
+      $attributes = $request->except(keys: 'services');
+      $services = $request->input(key: 'services');
 
       if ($room) {
         $room->update(attributes: $attributes);
         $room->services()->sync($services);
       }
 
-      $query = Room::query()->with(relations: ['floor', 'size', 'services']);
+      $query = Room::query()->where('id', $id)->with(relations: self::RELATIONS)->first();
 
-      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
-
-      return ApiResponse::success(data: $data);
+      return ApiResponse::success(data: $query);
 
     } catch (ModelNotFoundException $e) {
 
@@ -166,11 +166,13 @@ class RoomController extends Controller
 
       if ($room) {
 
-        $this->deleteImagesFromCloudinary(images: $room->images);
+        if (isset($room->images)) {
+          $this->deleteImagesFromCloudinary(images: $room->images);
+        }
 
         $room->delete();
 
-        $query = Room::query()->with(relations: ['floor', 'size', 'services']);
+        $query = Room::query()->with(relations: self::RELATIONS);
 
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 

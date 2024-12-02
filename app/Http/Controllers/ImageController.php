@@ -22,7 +22,9 @@ class ImageController extends Controller
 
     $validator = Validator::make(data: $request->all(), rules: [
       'model_type' => 'required|string',
-      'model_id' => 'required|string'
+      'model_id' => 'required|string',
+      'images' => 'required|array',
+      'images.*' => 'image|mimes:jpeg,png,gif|max:2048'
     ]);
 
     if ($validator->fails()) {
@@ -31,8 +33,7 @@ class ImageController extends Controller
 
     $model_type = $request->input(key: 'model_type');
     $model_id = $request->input(key: 'model_id');
-    $file = $request->file(key: 'image');
-
+    $files = $request->file(key: 'images');
 
     try {
 
@@ -41,23 +42,25 @@ class ImageController extends Controller
         default => null,
       };
 
-      if ($entity == null) {
+      if (!$entity) {
         return ApiResponse::error(message: 'Model not found', errors: ['message' => "Not results for $model_id in model $model_type"]);
       }
 
-      $cloudinary_result = Cloudinary::upload(file: $file->getRealPath());
+      foreach ($files as $file) {
+        $cloudinary_result = Cloudinary::upload(file: $file->getRealPath());
 
-      if ($cloudinary_result) {
-        $image = new Image();
-        $image->url = $cloudinary_result->getSecurePath();
-        $image->public_id = $cloudinary_result->getPublicId();
-        $image->save();
+        if ($cloudinary_result) {
+          $image = new Image();
+          $image->url = $cloudinary_result->getSecurePath();
+          $image->public_id = $cloudinary_result->getPublicId();
+          $image->save();
 
-        $entity->images()->attach($image->id);
+          $entity->images()->attach($image->id);
+        }
       }
 
       $entity = match ($model_type) {
-        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        'room' => Room::where(column: 'id', operator: $model_id)->with(['images'])->first(),
         default => null,
       };
 
@@ -86,6 +89,8 @@ class ImageController extends Controller
     $model_type = $request->input(key: 'model_type');
     $model_id = $request->input(key: 'model_id');
 
+
+
     try {
 
       if (!$model_type || !$model_id) {
@@ -93,9 +98,14 @@ class ImageController extends Controller
       }
 
       $entity = match ($model_type) {
-        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        'room' => Room::where(column: 'id', operator: $model_id)->with(['images'])->first(),
         default => null,
       };
+
+      if (!$entity) {
+        return ApiResponse::error(message: 'Model not found', errors: ['message' => "Not results for $model_id in model $model_type"]);
+      }
+
 
       $images = $entity->images;
 
@@ -167,7 +177,7 @@ class ImageController extends Controller
       }
 
       $entity = match ($model_type) {
-        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        'room' => Room::where(column: 'id', operator: $model_id)->with(['images'])->first(),
         default => null,
       };
 
@@ -215,7 +225,7 @@ class ImageController extends Controller
       }
 
       $entity = match ($model_type) {
-        'room' => Room::find(id: $model_id)->with(['images'])->first(),
+        'room' => Room::where(column: 'id', operator: $model_id)->with(relations: ['images'])->first(),
         default => null,
       };
 
