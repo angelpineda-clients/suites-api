@@ -26,4 +26,9 @@ class Season extends BaseModel
       set: fn(string|null $value): string => strtoupper(string: $value),
     );
   }
+
+  public function price()
+  {
+    return $this->hasMany(Price::class);
+  }
 }

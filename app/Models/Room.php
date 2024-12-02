@@ -43,4 +43,9 @@ class Room extends BaseModel
   {
     return $this->morphToMany(Image::class, 'imageable');
   }
+
+  public function prices()
+  {
+    return $this->hasMany(Price::class);
+  }
 }
