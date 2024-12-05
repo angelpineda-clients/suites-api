@@ -55,6 +55,9 @@ class SeasonController extends Controller
 
       if ($season) {
 
+        $query = Season::query();
+
+
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
         return ApiResponse::success(data: $data, message: "", code: Response::HTTP_CREATED);
@@ -129,7 +132,7 @@ class SeasonController extends Controller
 
     try {
 
-      $query = Season::query();
+      $query = Season::query()->where(column: 'id', operator: "!=", value: $id);
 
       $overlap = $this->seasonService->checkOverlap($query, $initial_date, $final_date);
 
@@ -140,6 +143,7 @@ class SeasonController extends Controller
       $season = Season::findOrFail(id: $id);
 
       if ($season) {
+        $query = Season::query();
         $season->update($request->all());
 
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
