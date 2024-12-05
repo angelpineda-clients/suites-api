@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
 use App\Models\Price;
-use App\Models\Room;
-use App\Models\Season;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,7 +39,7 @@ class PriceController extends Controller
       ]);
 
       if ($price) {
-        $query = Price::query()->where('room_id', $roomID);
+        $query = Price::query()->where('room_id', $roomID)->with(relations: ['season']);
 
         $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
@@ -72,7 +70,7 @@ class PriceController extends Controller
 
     try {
 
-      $query = Price::query()->where(column: 'room_id', operator: $roomID);
+      $query = Price::query()->where(column: 'room_id', operator: $roomID)->with(relations: ['season']);
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
       return ApiResponse::success(data: $data, message: "");
 
@@ -87,7 +85,7 @@ class PriceController extends Controller
 
     try {
 
-      $price = Price::findOrFail(id: $id);
+      $price = Price::findOrFail(id: $id)->with(relations: ['season']);
 
       return ApiResponse::success(data: $price, message: "");
 
@@ -114,7 +112,7 @@ class PriceController extends Controller
     $page = $request->input(key: 'page', default: 1);
     $per_page = $request->input(key: 'per_page', default: 10);
 
-    $amount = $request->input('amount');
+    $amount = $request->input(key: 'amount');
 
     try {
 
@@ -126,7 +124,7 @@ class PriceController extends Controller
         ]);
       }
 
-      $query = Price::query()->where(column: 'room_id', operator: $price->room_id);
+      $query = Price::query()->where(column: 'room_id', operator: $price->room_id)->with(relations: ['season']);
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
       return ApiResponse::success(data: $data, message: "");
@@ -156,7 +154,7 @@ class PriceController extends Controller
         $price->delete();
       }
 
-      $query = Price::query()->where(column: 'room_id', operator: $roomID);
+      $query = Price::query()->where(column: 'room_id', operator: $roomID)->with(relations: ['season']);
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
       return ApiResponse::success(data: $data, message: "");
