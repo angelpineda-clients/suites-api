@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\FloorController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\PriceController;
@@ -36,8 +37,8 @@ Route::get('room/{id}', [RoomController::class, 'show']);
 Route::get('image', [ImageController::class, 'index']);
 Route::get('image/{id}', [ImageController::class, 'show']);
 
-Route::get('price', [PriceController::class, 'index'])->middleware(['role:manager|admin']);
-Route::get('price/{id}', [PriceController::class, 'show'])->middleware(['role:manager|admin']);
+Route::post('booking', [BookingController::class, 'store']);
+
 
 
 Route::group([
@@ -79,8 +80,12 @@ Route::group([
   Route::put('image/{id}', [ImageController::class, 'update'])->middleware(['role:manager|admin']);
   Route::delete('image/{id}', [ImageController::class, 'delete'])->middleware(['role:manager|admin']);
 
+  Route::get('price', [PriceController::class, 'index'])->middleware(['role:manager|admin']);
+  Route::get('price/{id}', [PriceController::class, 'show'])->middleware(['role:manager|admin']);
   Route::post('price', [PriceController::class, 'store'])->middleware(['role:manager|admin']);
   Route::put('price/{id}', [PriceController::class, 'update'])->middleware(['role:manager|admin']);
   Route::delete('price/{id}', [PriceController::class, 'delete'])->middleware(['role:manager|admin']);
+
+
 
 });
