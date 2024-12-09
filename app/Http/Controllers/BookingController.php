@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Helpers\ApiResponse;
 use App\Models\Booking;
 use App\Services\BookingService;
+use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +14,7 @@ use Validator;
 
 class BookingController extends Controller
 {
-
+  private const RELATIONS = ['payment'];
   protected $bookingService;
 
   public function __construct(BookingService $bookingService)
@@ -37,20 +38,14 @@ class BookingController extends Controller
       return ApiResponse::error(message: 'Validation error', errors: $validator->errors());
     }
 
-    /**
-     * //validar rango de fechas
-     * //crear booking
-     * crear payment_intent
-     * regresar client_secret
-     */
 
     $roomID = $request->input(key: 'room_id');
     $initialDate = $request->input(key: 'check_in');
     $finalDate = $request->input(key: 'check_out');
 
-    try {
+    DB::beginTransaction();
 
-      // todo: agregar rollbacks
+    try {
 
       $querySearchBooking = Booking::query()->where(column: 'room_id', operator: $roomID);
 
@@ -62,8 +57,16 @@ class BookingController extends Controller
 
       $booking = Booking::create($request->all());
 
-      return ApiResponse::success(data: $booking, message: 'Todo ok');
+      $payment = new PaymentController();
+
+      $clientSecret = $payment->store(amount: 150000, bookingID: $booking->id);
+
+      DB::commit();
+      return ApiResponse::success(data: $clientSecret);
+
     } catch (\Exception $e) {
+
+      DB::rollBack();
 
       return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
@@ -78,7 +81,7 @@ class BookingController extends Controller
 
     try {
 
-      $query = Booking::query()->where(column: 'status', operator: $status);
+      $query = Booking::query()->where(column: 'status', operator: $status)->with(relations: self::RELATIONS);
 
       if ($search) {
         $query->where(column: 'name', operator: $search);
@@ -97,9 +100,9 @@ class BookingController extends Controller
   public function show(string $id)
   {
     try {
-      $booking = Booking::findOrFail($id);
+      $booking = Booking::where('id', $id)->with(relations: self::RELATIONS)->firstOrFail();
 
-      return ApiResponse::success($booking);
+      return ApiResponse::success(data: $booking);
 
     } catch (ModelNotFoundException $e) {
 
@@ -131,7 +134,9 @@ class BookingController extends Controller
     try {
       $booking = Booking::findOrFail($id);
 
-      return ApiResponse::success($booking);
+      $booking->delete();
+
+      return ApiResponse::success(['booking deleted']);
 
     } catch (ModelNotFoundException $e) {
 
