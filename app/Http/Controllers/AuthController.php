@@ -77,6 +77,11 @@ class AuthController extends Controller
 
   protected function respondWithToken($token)
   {
+
+    $authUser = auth()->user();
+
+    $user = User::where(column: 'id', operator: $authUser->id)->with(relations: 'roles:name')->first();
+
     $data = [
       'auth' => [
         'access_token' => $token,
@@ -84,7 +89,7 @@ class AuthController extends Controller
         'expires_in' => Auth::guard('api')->factory()->getTTL() * 60,
         'refresh_token' => Auth::guard('api')->refresh(),
       ],
-      'user' => auth()->user()
+      'user' => $user,
     ];
 
     return ApiResponse::success(data: $data);
