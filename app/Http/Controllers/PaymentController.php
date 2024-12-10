@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
 use App\Models\Payment;
+use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,43 +20,42 @@ class PaymentController extends Controller
   }
 
 
-  public function store($amount, $bookingID): JsonResponse
+  public function store($amount, $bookingID)
   {
 
     if (!$bookingID) {
       return ApiResponse::error('Booking id is required for a payment');
     }
 
+    DB::beginTransaction();
+
     try {
 
       $stripe = new \Stripe\StripeClient(config: $this->STRIPE_KEY);
 
 
-      /* $payment_intent = $stripe->paymentIntents->create([
+      $payment_intent = $stripe->paymentIntents->create([
         'amount' => $amount,
         'currency' => 'mxn',
         'payment_method_types' => [
-          'bancontact',
           'card',
-          'eps',
-          'giropay',
-          'ideal',
-          'p24',
-          'sepa_debit',
         ],
-      ]); */
+      ]);
 
       $payment = Payment::create([
-        'payment_intent' => 'dummy_id', //$payment_intent->id,
-        'amount' => '6000', //$payment_intent->amount,
-        'client_secret' => 'client_secret', //$payment_intent->client_secret,
+        'payment_intent' => $payment_intent->id,
+        'amount' => $payment_intent->amount,
+        'client_secret' => $payment_intent->client_secret,
         'booking_id' => $bookingID
       ]);
 
-      return $payment->client_secret;
+      DB::commit();
+
+      return ['payment_info' => $payment->client_secret, 'error' => null];
 
     } catch (\Exception $e) {
-      return ApiResponse::error(message: 'Unexpected error', errors: $e->getMessage());
+      DB::rollBack();
+      return ['payment_info' => null, 'error' => $e->getMessage()];
     }
   }
 

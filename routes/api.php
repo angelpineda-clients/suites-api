@@ -79,6 +79,7 @@ Route::group([
   Route::get('booking', [BookingController::class, 'index'])->middleware(['role:manager|admin']);
   Route::get('booking/{id}', [BookingController::class, 'show'])->middleware(['role:manager|admin']);
   Route::put('booking/{id}', [BookingController::class, 'update'])->middleware(['role:manager|admin']);
+  Route::put('booking-status/{id}', [BookingController::class, 'updatestatus'])->middleware(['role:manager|admin']);
   Route::delete('booking/{id}', [BookingController::class, 'delete'])->middleware(['role:manager|admin']);
 
 });
