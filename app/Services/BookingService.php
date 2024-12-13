@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Booking;
 use DB;
 
 class BookingService
@@ -9,22 +10,21 @@ class BookingService
 
   /**
    * Checks exists a reservation for a query with room_id included
-   * @param mixed $query should include room_id result -> Booking::query()->where('room_id', $roomID)
+   * @param mixed $roomID should include room_id result -> Booking::query()->where('room_id', $roomID)
    * @param mixed $initial_date value for check_in
    * @param mixed $final_date value for check_out
    * @return mixed
    */
-  public function checkOverlap($query, $initialDate, $finalDate): mixed
+  public function checkOverlap($query, $startDate, $endDate): mixed
   {
     return $query
-      ->where(function ($query) use ($initialDate, $finalDate) {
-        $query->whereDate('check_in', '<=', $initialDate)
-          ->whereDate('check_out', '>', $finalDate);
-      })->orWhere(function ($query) use ($initialDate) {
-        $query->whereDate('check_in', '<=', $initialDate)->whereDate('check_out', '>', $initialDate);
+      ->where(function ($query) use ($startDate, $endDate) {
+        $query->where('check_in', '<=', $endDate)
+          ->where('check_out', '>=', $startDate);
       })
-      ->orWhere(function ($query) use ($finalDate) {
-        $query->whereDate('check_in', '<', $finalDate)->whereDate('check_out', '>=', $finalDate);
+      ->whereNot(function ($query) use ($startDate, $endDate) {
+        $query->where('check_out', '=', $startDate) // Caso sin conflicto 1
+          ->orWhere('check_in', '=', $endDate); // Caso sin conflicto 2
       })
       ->exists();
   }

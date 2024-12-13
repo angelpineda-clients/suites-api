@@ -51,6 +51,6 @@ class Room extends BaseModel
 
   public function booking()
   {
-    $this->hasMany(Booking::class);
+    return $this->hasMany(Booking::class);
   }
 }

@@ -16,6 +16,7 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('refresh', [AuthController::class, 'refresh']);
 
 Route::get('room', [RoomController::class, 'index']);
+Route::get('search-room', [RoomController::class, 'searchRoom']);
 Route::get('room/{id}', [RoomController::class, 'show']);
 
 Route::get('image', [ImageController::class, 'index']);

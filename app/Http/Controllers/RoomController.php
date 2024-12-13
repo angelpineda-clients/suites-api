@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Models\Image;
 use App\Models\Room;
+use App\Services\RoomService;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -16,8 +17,14 @@ use Validator;
 class RoomController extends Controller
 {
   private const RELATIONS = ['floor', 'size', 'services', 'images'];
+  protected $roomService;
 
   use MediaAlly;
+
+  public function __construct(RoomService $roomService)
+  {
+    $this->roomService = $roomService;
+  }
 
   public function store(Request $request)
   {
@@ -185,6 +192,40 @@ class RoomController extends Controller
     } catch (\Exception $e) {
 
       return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  public function searchRoom(Request $request)
+  {
+    $validator = Validator::make($request->all(), [
+      'check_in' => 'required|date',
+      'check_out' => 'required|date',
+      'adults' => 'required|numeric',
+      'children' => 'numeric'
+    ]);
+
+    if ($validator->fails()) {
+      return ApiResponse::error('Validator error', $validator->errors());
+    }
+
+    $checkIn = $request->input('check_in');
+    $checkOut = $request->input('check_out');
+    $adults = $request->input('adults');
+    $children = $request->input('children');
+    $page = $request->query('page', 1);
+    $pageSize = $request->query('per_page', 10);
+
+    $people = $adults + $children;
+
+    try {
+      $rooms = $this->roomService->searchRoomAvailability($people, $checkIn, $checkOut);
+
+      $data = $this->paginateData(query: $rooms, page: $page, perPage: $pageSize);
+
+
+      return ApiResponse::success($data);
+    } catch (\Exception $e) {
+      return ApiResponse::error('Unexpected error', $e->getMessage());
     }
   }
 }

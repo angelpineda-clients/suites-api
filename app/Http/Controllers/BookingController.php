@@ -41,8 +41,8 @@ class BookingController extends Controller
     }
 
     $roomID = $request->input(key: 'room_id');
-    $initialDate = $request->input(key: 'check_in');
-    $finalDate = $request->input(key: 'check_out');
+    $startDate = $request->input(key: 'check_in');
+    $endDate = $request->input(key: 'check_out');
 
     DB::beginTransaction();
 
@@ -50,7 +50,8 @@ class BookingController extends Controller
 
       $querySearchBooking = Booking::query()->where(column: 'room_id', operator: $roomID);
 
-      $overlap = $this->bookingService->checkOverlap(query: $querySearchBooking, initialDate: $initialDate, finalDate: $finalDate);
+
+      $overlap = $this->bookingService->checkOverlap(query: $querySearchBooking, startDate: $startDate, endDate: $endDate);
 
       if ($overlap) {
         return ApiResponse::error(message: 'Duplicated booking dates');
@@ -58,7 +59,7 @@ class BookingController extends Controller
 
       $room = Room::findOrFail(id: $roomID);
 
-      $total = $this->bookingService->roomPricesBySeason(roomId: $room->id, initialDate: $initialDate, finalDate: $finalDate, basePrice: $room->price);
+      $total = $this->bookingService->roomPricesBySeason(roomId: $room->id, initialDate: $startDate, finalDate: $endDate, basePrice: $room->price);
 
       $booking = Booking::create(attributes: $request->all());
 
