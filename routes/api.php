@@ -16,13 +16,14 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('refresh', [AuthController::class, 'refresh']);
 
 Route::get('room', [RoomController::class, 'index']);
-Route::get('search-room', [RoomController::class, 'searchRoom']);
+Route::get('search', [RoomController::class, 'search']);
 Route::get('room/{id}', [RoomController::class, 'show']);
 
 Route::get('image', [ImageController::class, 'index']);
 Route::get('image/{id}', [ImageController::class, 'show']);
 
 Route::post('booking', [BookingController::class, 'store']);
+Route::get('booking-unavailable-dates/{roomID}', [BookingController::class, 'unavailableDates']);
 
 Route::group([
   'middleware' => 'api',

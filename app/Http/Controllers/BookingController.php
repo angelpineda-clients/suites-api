@@ -8,6 +8,8 @@ use App\Models\Booking;
 use App\Models\Room;
 use App\Services\BookingService;
 use App\Services\SeasonService;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -188,6 +190,48 @@ class BookingController extends Controller
       $booking->delete();
 
       return ApiResponse::success(['booking deleted']);
+
+    } catch (ModelNotFoundException $e) {
+
+      return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
+    } catch (\Exception $e) {
+
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  public function unavailableDates(Request $request, string $roomID)
+  {
+
+    $today = Carbon::today();
+
+    try {
+      $bookingsByRoom = Booking::where('room_id', $roomID)->where('check_in', '>=', $today)->orWhere(function ($query) use ($today) {
+        $query->where('check_in', '<=', $today)->where('check_out', '>=', $today);
+      })->get();
+
+      // rest a day for checkout
+      foreach ($bookingsByRoom as $booking) {
+        $checkOut = new Carbon($booking->check_out);
+        $booking->check_out = $checkOut->subDay()->toDateString();
+      }
+
+      $takenDates = [];
+
+      foreach ($bookingsByRoom as $booking) {
+        $period = CarbonPeriod::create(
+          $booking->check_in,
+          $booking->check_out
+        );
+
+        foreach ($period as $date) {
+          array_push($takenDates, $date->toDateString());
+        }
+      }
+
+      sort($takenDates);
+
+      return response()->json($takenDates);
 
     } catch (ModelNotFoundException $e) {
 

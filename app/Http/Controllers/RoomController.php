@@ -195,7 +195,7 @@ class RoomController extends Controller
     }
   }
 
-  public function searchRoom(Request $request)
+  public function search(Request $request)
   {
     $validator = Validator::make($request->all(), [
       'check_in' => 'required|date',
@@ -218,7 +218,7 @@ class RoomController extends Controller
     $people = $adults + $children;
 
     try {
-      $rooms = $this->roomService->searchRoomAvailability($people, $checkIn, $checkOut);
+      $rooms = $this->roomService->searchRoomAvailability($people, $checkIn, $checkOut)->with(self::RELATIONS);
 
       $data = $this->paginateData(query: $rooms, page: $page, perPage: $pageSize);
 
