@@ -206,8 +206,9 @@ class BookingController extends Controller
     $today = Carbon::today();
 
     try {
-      $bookingsByRoom = Booking::where('room_id', $roomID)->where('check_in', '>=', $today)->orWhere(function ($query) use ($today) {
-        $query->where('check_in', '<=', $today)->where('check_out', '>=', $today);
+      $bookingsByRoom = Booking::where('room_id', $roomID)->where('check_in', '>=', $today)->orWhere(function ($query) use ($today, $roomID) {
+        $query->where('check_in', '<=', $today)->where('check_out', '>=', $today)
+          ->where('room_id', $roomID);
       })->get();
 
       // rest a day for checkout
