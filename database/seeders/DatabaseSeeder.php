@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Floor;
+use App\Models\Price;
 use App\Models\Room;
+use App\Models\Season;
 use App\Models\Service;
 use App\Models\Size;
 use App\Models\User;
@@ -50,11 +52,18 @@ class DatabaseSeeder extends Seeder
     Service::create(['name' => 'cocina']);
     Service::create(['name' => 'aire acondicionado']);
 
-    $room1 =
+    // 7 seasons
+    Season::create(["name" => 'Navidad', 'alias' => 'xmas', 'initial_date' => '2024-12-05', 'final_date' => '2024-12-31']);
+    Season::create(["name" => 'Dia de muertos', 'alias' => 'ddm', 'initial_date' => '2024-10-24', 'final_date' => '2024-11-08']);
+    Season::create(["name" => 'Dia de la independencia', 'alias' => '16 sep', 'initial_date' => '2024-09-09', 'final_date' => '2024-09-23']);
+    Season::create(["name" => 'Verano', 'alias' => 'verano', 'initial_date' => '2024-06-01', 'final_date' => '2024-07-31']);
+    Season::create(["name" => 'Semana santa', 'alias' => 'semana santa', 'initial_date' => '2024-03-20', 'final_date' => '2024-04-15']);
+    Season::create(["name" => 'Dia del amor y la amistad', 'alias' => 'amor y amistad', 'initial_date' => '2024-02-05', 'final_date' => '2024-02-20']);
+    Season::create(["name" => 'Ano nuevo', 'alias' => 'new year', 'initial_date' => '2024-01-01', 'final_date' => '2024-01-06']);
 
-      $rooms = ['Suite 1', 'Suite 2', 'Suite 3', 'Suite 4', 'Suite 5', 'Suite 6', 'Suite 7', 'Suite 8', 'Suite 9'];
 
-    //'description' => 'Cuarto de ejemplo creado con datos aleatorios.',
+    // 9 rooms
+    $rooms = ['Suite 1', 'Suite 2', 'Suite 3', 'Suite 4', 'Suite 5', 'Suite 6', 'Suite 7', 'Suite 8', 'Suite 9'];
 
     foreach ($rooms as $room) {
       Room::create([
@@ -63,6 +72,14 @@ class DatabaseSeeder extends Seeder
         'capacity' => rand(2, 9),
         'beds' => rand(1, 7),
         'description' => 'Cuarto de ejemplo creado con datos aleatorios. '
+      ]);
+    }
+
+    for ($i = 0; $i < 30; $i++) {
+      Price::create([
+        'amount' => rand(1700, 12500),
+        'room_id' => rand(1, 9),
+        'season_id' => rand(1, 7)
       ]);
     }
 

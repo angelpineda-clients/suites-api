@@ -18,6 +18,7 @@ Route::post('refresh', [AuthController::class, 'refresh']);
 Route::get('room', [RoomController::class, 'index']);
 Route::get('search', [RoomController::class, 'search']);
 Route::get('room/{id}', [RoomController::class, 'show']);
+Route::get('room-prices/{id}', [RoomController::class, 'getPricesWithSeason']);
 
 Route::get('image', [ImageController::class, 'index']);
 Route::get('image/{id}', [ImageController::class, 'show']);

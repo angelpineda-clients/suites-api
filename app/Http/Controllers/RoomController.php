@@ -228,4 +228,24 @@ class RoomController extends Controller
       return ApiResponse::error('Unexpected error', $e->getMessage());
     }
   }
+
+  public function getPricesWithSeason(string $id)
+  {
+    try {
+      $prices = Room::where('id', $id)->select('id', 'name', 'price')->with([
+        'prices' => function ($query) {
+          $query->select('id', 'room_id', 'amount', 'season_id');
+        },
+        'prices.season' => function ($query) {
+          $query->select('id', 'name', 'alias', 'initial_date', 'final_date');
+        }
+      ])->first();
+
+      return ApiResponse::success($prices);
+
+
+    } catch (\Exception $e) {
+      return ApiResponse::error('Unexpected error', $e->getMessage());
+    }
+  }
 }
