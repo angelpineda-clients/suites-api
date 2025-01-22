@@ -188,10 +188,18 @@ class SeasonController extends Controller
     }
   }
 
-  public function allDates()
+  public function allDates(Request $request)
   {
+    $seasonID = $request->query(key: 'season_id');
     try {
-      $seasons = Season::all();
+      $seasons = [];
+
+      if (isset($seasonID)) {
+        $seasons = Season::where('id', 'not like', $seasonID)->get();
+      } else {
+        $seasons = Season::all();
+      }
+
       $takenDates = [];
 
       foreach ($seasons as $season) {
