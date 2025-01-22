@@ -55,22 +55,19 @@ class PriceController extends Controller
   public function index(Request $request)
   {
 
-    $validator = Validator::make(data: $request->all(), rules: [
-      'room_id' => 'required',
-    ]);
-
-    if ($validator->fails()) {
-      return ApiResponse::error(message: 'Validation error', errors: $validator->errors());
-    }
-
     $page = $request->input(key: 'page', default: 1);
     $per_page = $request->input(key: 'per_page', default: 10);
 
-    $roomID = $request->input('room_id');
+    $roomID = $request->input('room_id', null);
 
     try {
 
-      $query = Price::query()->where(column: 'room_id', operator: $roomID)->with(relations: ['season']);
+      $query = Price::query()->with(relations: ['season']);
+
+      if (isset($roomID)) {
+        $query->where(column: 'room_id', operator: $roomID);
+      }
+
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
       return ApiResponse::success(data: $data, message: "");
 

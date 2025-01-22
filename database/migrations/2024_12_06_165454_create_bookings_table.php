@@ -20,7 +20,7 @@ return new class extends Migration {
       $table->enum(column: 'status', allowed: [0, 1, 2, 3])->default(value: 0);
       $table->date(column: 'check_in')->require();
       $table->date(column: 'check_out')->require();
-      $table->foreignId(column: 'room_id')->constrained()->cascadeOnDelete();
+      $table->foreignId(column: 'room_id')->constrained()->onDelete('cascade');
       $table->timestamps();
     });
   }
