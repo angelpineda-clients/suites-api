@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Models\Season;
 use App\Services\SeasonService;
 
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -184,6 +185,31 @@ class SeasonController extends Controller
     } catch (\Exception $e) {
 
       return ApiResponse::error(message: 'Not expected error', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  public function allDates()
+  {
+    try {
+      $seasons = Season::all();
+      $takenDates = [];
+
+      foreach ($seasons as $season) {
+        $period = CarbonPeriod::create(
+          $season->initial_date,
+          $season->final_date
+        );
+
+        foreach ($period as $date) {
+          array_push($takenDates, $date->toDateString());
+        }
+      }
+
+      sort($takenDates);
+
+      return response()->json($takenDates);
+    } catch (\Exception $e) {
+      return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 }

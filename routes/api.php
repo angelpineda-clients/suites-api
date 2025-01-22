@@ -59,6 +59,7 @@ Route::group([
   Route::delete('floor/{id}', [FloorController::class, 'delete'])->middleware(['role:manager|admin']);
 
   Route::get('season', [SeasonController::class, 'index'])->middleware(['role:manager|admin']);
+  Route::get('season-exists', [SeasonController::class, 'allDates'])->middleware(['role:manager|admin']);
   Route::get('season/{id}', [SeasonController::class, 'show'])->middleware(['role:manager|admin']);
   Route::post('season', [SeasonController::class, 'store'])->middleware(['role:manager|admin']);
   Route::put('season/{id}', [SeasonController::class, 'update'])->middleware(['role:manager|admin']);
