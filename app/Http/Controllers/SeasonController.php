@@ -195,7 +195,7 @@ class SeasonController extends Controller
       $seasons = [];
 
       if (isset($seasonID)) {
-        $seasons = Season::where('id', 'not like', $seasonID)->get();
+        $seasons = Season::query()->where('id', '!=', $seasonID)->get();
       } else {
         $seasons = Season::all();
       }
