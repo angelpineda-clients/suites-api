@@ -37,9 +37,8 @@ class PaymentController extends Controller
       $payment_intent = $stripe->paymentIntents->create([
         'amount' => $amount,
         'currency' => 'mxn',
-        'payment_method_types' => [
-          'card',
-        ],
+        'automatic_payment_methods' => ['enabled' => true],
+
       ]);
 
       $payment = Payment::create([
@@ -55,7 +54,8 @@ class PaymentController extends Controller
 
     } catch (\Exception $e) {
       DB::rollBack();
-      return ['payment_info' => null, 'error' => $e->getMessage()];
+      return ApiResponse::error($e->getMessage());
+
     }
   }
 

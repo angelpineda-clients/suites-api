@@ -10,6 +10,8 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SeasonController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SizeController;
+
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('register', [AuthController::class, 'register']);
@@ -25,6 +27,8 @@ Route::get('image/{id}', [ImageController::class, 'show']);
 
 Route::post('booking', [BookingController::class, 'store']);
 Route::get('booking-unavailable-dates/{roomID}', [BookingController::class, 'unavailableDates']);
+
+Route::post('stripe-webhook', [StripeWebhookController::class, 'handlePayment']);
 
 Route::group([
   'middleware' => 'api',
@@ -83,7 +87,7 @@ Route::group([
   Route::get('booking', [BookingController::class, 'index'])->middleware(['role:manager|admin']);
   Route::get('booking/{id}', [BookingController::class, 'show'])->middleware(['role:manager|admin']);
   Route::put('booking/{id}', [BookingController::class, 'update'])->middleware(['role:manager|admin']);
-  Route::put('booking-status/{id}', [BookingController::class, 'updatestatus'])->middleware(['role:manager|admin']);
+  Route::put('booking-status/{id}', [BookingController::class, 'updateStatus'])->middleware(['role:manager|admin']);
   Route::delete('booking/{id}', [BookingController::class, 'delete'])->middleware(['role:manager|admin']);
 
 });

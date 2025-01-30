@@ -33,7 +33,7 @@ class BookingController extends Controller
       'last_name' => 'required',
       'email' => 'required|email',
       'phone_number' => 'required',
-      'check_in' => 'required|date',
+      'check_in' => 'required|date', // TODO: should be equal or greater than today.
       'check_out' => 'required|date',
       'room_id' => 'required',
     ]);
