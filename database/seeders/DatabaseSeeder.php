@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
 
 
     // 9 rooms
-    $rooms = ['Suite 1', 'Suite 2', 'Suite 3', 'Suite 4', 'Suite 5', 'Suite 6', 'Suite 7', 'Suite 8', 'Suite 9'];
+    /* $rooms = ['Suite 1', 'Suite 2', 'Suite 3', 'Suite 4', 'Suite 5', 'Suite 6', 'Suite 7', 'Suite 8', 'Suite 9'];
 
     foreach ($rooms as $room) {
       Room::create([
@@ -81,7 +81,7 @@ class DatabaseSeeder extends Seeder
         'room_id' => rand(1, 9),
         'season_id' => rand(1, 7)
       ]);
-    }
+    } */
 
   }
 }

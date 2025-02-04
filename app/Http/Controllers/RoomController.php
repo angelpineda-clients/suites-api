@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\ParseValues;
 use App\Models\Image;
 use App\Models\Room;
 use App\Services\RoomService;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
+use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,6 +19,7 @@ use Validator;
 class RoomController extends Controller
 {
   private const RELATIONS = ['floor', 'size', 'services', 'images'];
+  private $STRIPE_KEY;
   protected $roomService;
 
   use MediaAlly;
@@ -24,6 +27,7 @@ class RoomController extends Controller
   public function __construct(RoomService $roomService)
   {
     $this->roomService = $roomService;
+    $this->STRIPE_KEY = env('STRIPE_SK_TEST');
   }
 
   public function store(Request $request)
@@ -43,9 +47,24 @@ class RoomController extends Controller
     $page = $request->input(key: 'page', default: 1);
     $per_page = $request->input(key: 'per_page', default: 10);
 
+    DB::beginTransaction();
     try {
 
+      $stripe = new \Stripe\StripeClient($this->STRIPE_KEY);
+
       $attributes = $request->except(keys: ['services', 'images', 'per_page', 'page']);
+
+      $productData = [
+        'name' => $attributes['name'],
+        'description' => isset($attributes['description']) ? $attributes['description'] : $attributes['name'],
+        'default_price_data' => ['currency' => 'mxn', 'unit_amount' => ParseValues::priceToCents($attributes['price'])]
+      ];
+
+      $isProduct = $stripe->products->create($productData);
+
+      if (!$isProduct) {
+        return ApiResponse::error('Error al crear el producto');
+      }
 
       $room = Room::create(attributes: $attributes);
 
@@ -76,10 +95,12 @@ class RoomController extends Controller
 
       $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
+      DB::commit();
+
       return ApiResponse::success(data: $data, message: "", code: Response::HTTP_CREATED);
 
     } catch (\Exception $e) {
-
+      DB::rollBack();
       return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
