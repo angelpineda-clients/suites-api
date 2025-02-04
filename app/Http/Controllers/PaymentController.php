@@ -38,7 +38,6 @@ class PaymentController extends Controller
         'amount' => $amount,
         'currency' => 'mxn',
         'automatic_payment_methods' => ['enabled' => true],
-
       ]);
 
       $payment = Payment::create([
@@ -50,11 +49,11 @@ class PaymentController extends Controller
 
       DB::commit();
 
-      return ['payment_info' => $payment->client_secret, 'error' => null];
+      return ['payment_info' => $payment->client_secret, 'success' => true];
 
     } catch (\Exception $e) {
       DB::rollBack();
-      return ApiResponse::error($e->getMessage());
+      return ['success' => false, 'error' => $e->getMessage()];
 
     }
   }

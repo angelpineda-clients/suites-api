@@ -69,7 +69,7 @@ class BookingController extends Controller
 
       $paymentObject = $payment->store(amount: $total, bookingID: $booking->id);
 
-      if ($paymentObject['error']) {
+      if (!$paymentObject['success']) {
         return ApiResponse::error('Unexpected error', $paymentObject['error']);
       }
 
