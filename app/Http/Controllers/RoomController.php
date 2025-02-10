@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Helpers\ParseValues;
 use App\Models\Image;
 use App\Models\Room;
+use App\Services\PriceService;
 use App\Services\RoomService;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
@@ -20,13 +21,15 @@ class RoomController extends Controller
 {
   private const RELATIONS = ['floor', 'size', 'services', 'images'];
   private $STRIPE_KEY;
+  protected $priceService;
   protected $roomService;
 
   use MediaAlly;
 
-  public function __construct(RoomService $roomService)
+  public function __construct(RoomService $roomService, PriceService $priceService)
   {
     $this->roomService = $roomService;
+    $this->priceService = $priceService;
     $this->STRIPE_KEY = env('STRIPE_SK_TEST');
   }
 
@@ -90,6 +93,8 @@ class RoomController extends Controller
           }
         }
       }
+
+      $this->priceService->createDefault($attributes['amount'], $room->id, $isProduct);
 
       $query = Room::query()->with(relations: self::RELATIONS);
 

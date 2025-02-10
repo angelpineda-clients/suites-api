@@ -13,9 +13,13 @@ return new class extends Migration {
     Schema::create('prices', function (Blueprint $table) {
       $table->id();
       $table->float('amount')->require();
-      $table->foreignId('room_id')->constrained()->onDelete('cascade');
-      $table->foreignId('season_id')->constrained()->onDelete('cascade');
+      $table->string('stripe_id')->require();
+      $table->boolean('is_default')->default(false);
+      $table->foreignId('room_id')->require()->constrained()->onDelete('cascade');
+      $table->foreignId('season_id')->nullable()->constrained()->onDelete('cascade');
       $table->timestamps();
+
+      $table->unique(['room_id', 'is_default'], 'unique_default_price');
     });
   }
 
