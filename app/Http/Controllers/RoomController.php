@@ -50,13 +50,19 @@ class RoomController extends Controller
     $page = $request->input(key: 'page', default: 1);
     $per_page = $request->input(key: 'per_page', default: 10);
 
+    $services = $request->input(key: 'services');
+    $files = $request->file(key: 'images');
+
+    $isProduct = null;
+
+    $stripe = new \Stripe\StripeClient($this->STRIPE_KEY);
+
     DB::beginTransaction();
     try {
 
-      $stripe = new \Stripe\StripeClient($this->STRIPE_KEY);
+      $attributes = $request->except(keys: ['services', 'images', 'page', 'per_page']);
 
-      $attributes = $request->except(keys: ['services', 'images', 'per_page', 'page']);
-
+      // setup product data with price.
       $productData = [
         'name' => $attributes['name'],
         'description' => isset($attributes['description']) ? $attributes['description'] : $attributes['name'],
@@ -69,43 +75,52 @@ class RoomController extends Controller
         return ApiResponse::error('Error al crear el producto');
       }
 
-      $room = Room::create(attributes: $attributes);
+      // create room
+      $room = Room::create([
+        ...$attributes,
+        'stripe_product_id' => $isProduct->id,
+        'stripe_default_price_id' => $isProduct->default_price
+      ]);
 
-      if ($room) {
-        $services = $request->input(key: 'services');
+      // create default price
+      $isDefaultPrice = $this->priceService->createDefault($attributes['price'], $room->id, product: $isProduct);
+
+      // sync services
+      if (isset($services)) {
         $room->services()->sync($services);
+      }
 
-        $files = $request->file(key: 'images');
+      // upload images
+      if (isset($files)) {
 
-        if (isset($files)) {
+        foreach ($files as $file) {
+          $cloudinary_result = Cloudinary::upload(file: $file->getRealPath());
 
-          foreach ($files as $file) {
-            $cloudinary_result = Cloudinary::upload(file: $file->getRealPath());
+          if ($cloudinary_result) {
+            $image = new Image();
+            $image->url = $cloudinary_result->getSecurePath();
+            $image->public_id = $cloudinary_result->getPublicId();
+            $image->save();
 
-            if ($cloudinary_result) {
-              $image = new Image();
-              $image->url = $cloudinary_result->getSecurePath();
-              $image->public_id = $cloudinary_result->getPublicId();
-              $image->save();
-
-              $room->images()->attach($image->id);
-            }
+            $room->images()->attach($image->id);
           }
         }
       }
 
-      $this->priceService->createDefault($attributes['amount'], $room->id, $isProduct);
-
-      $query = Room::query()->with(relations: self::RELATIONS);
-
-      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
-
       DB::commit();
+
+      $query = Room::query()->where('active', true)->with(relations: self::RELATIONS);
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
       return ApiResponse::success(data: $data, message: "", code: Response::HTTP_CREATED);
 
     } catch (\Exception $e) {
       DB::rollBack();
+
+      if ($isProduct) {
+        $stripe->products->update($isProduct->id, ['active' => false]);
+      }
+
       return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
@@ -154,29 +169,28 @@ class RoomController extends Controller
   public function update(Request $request, string $id)
   {
 
-    $validator = Validator::make(data: $request->all(), rules: [
-      'name' => 'string|required',
-      'price' => 'required'
-    ]);
+    $stripe = new \Stripe\StripeClient($this->STRIPE_KEY);
 
-    if ($validator->fails()) {
-      return ApiResponse::error(message: 'Validation error', errors: $validator->errors());
-    }
-
-    $page = $request->input(key: 'page', default: 1);
-    $per_page = $request->input(key: 'per_page', default: 10);
-
+    DB::beginTransaction();
     try {
       $room = Room::findOrFail(id: $id);
 
       $attributes = $request->except(keys: 'services');
       $services = $request->input(key: 'services');
 
-      if ($room) {
-        $room->update(attributes: $attributes);
+      $room->update(attributes: $attributes);
+
+      if (isset($services)) {
         $room->services()->sync($services);
       }
 
+      $wasUpdated = $stripe->products->update($room['stripe_product_id'], [
+        'name' => $room['name'],
+        'description' => $room['description']
+      ]);
+
+
+      DB::commit();
       $query = Room::query()->where('id', $id)->with(relations: self::RELATIONS)->first();
 
       return ApiResponse::success(data: $query);
@@ -185,37 +199,41 @@ class RoomController extends Controller
 
       return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
-
+      DB::rollBack();
       return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
   }
 
   public function delete(Request $request, string $id)
   {
+
     $page = $request->input(key: 'page', default: 1);
     $per_page = $request->input(key: 'per_page', default: 10);
+
+    $stripe = new \Stripe\StripeClient($this->STRIPE_KEY);
+
+    DB::beginTransaction();
     try {
       $room = Room::findOrFail(id: $id);
 
-      if ($room) {
+      $room->delete();
 
-        if (isset($room->images)) {
-          $this->deleteImagesFromCloudinary(images: $room->images);
-        }
+      $wasDeleted = $stripe->products->update($room['stripe_product_id'], [
+        'active' => false
+      ]);
 
-        $room->delete();
+      DB::commit();
+      $query = Room::query()->where('active', true)->with(relations: self::RELATIONS);
+      $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
 
-        $query = Room::query()->with(relations: self::RELATIONS);
-
-        $data = $this->paginateData(query: $query, perPage: $per_page, page: $page);
-
-        return ApiResponse::success($data);
-      }
+      return ApiResponse::success($data);
 
     } catch (ModelNotFoundException $e) {
 
       return ApiResponse::error(message: 'Resource not found ', errors: $e->getMessage(), code: Response::HTTP_NOT_FOUND);
     } catch (\Exception $e) {
+
+      DB::rollBack();
 
       return ApiResponse::error(message: 'Not expected error ', errors: $e->getMessage(), code: Response::HTTP_INTERNAL_SERVER_ERROR);
     }
@@ -237,7 +255,7 @@ class RoomController extends Controller
     $checkIn = $request->input('check_in');
     $checkOut = $request->input('check_out');
     $adults = $request->input('adults');
-    $children = $request->input('children');
+    $children = $request->input('children', 0);
     $page = $request->query('page', 1);
     $pageSize = $request->query('per_page', 10);
 
@@ -247,7 +265,6 @@ class RoomController extends Controller
       $rooms = $this->roomService->searchRoomAvailability($people, $checkIn, $checkOut)->with(self::RELATIONS);
 
       $data = $this->paginateData(query: $rooms, page: $page, perPage: $pageSize);
-
 
       return ApiResponse::success($data);
     } catch (\Exception $e) {

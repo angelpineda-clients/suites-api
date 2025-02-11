@@ -17,14 +17,17 @@ class RoomService
    */
   public function searchRoomAvailability($people, $checkIn, $checkOut)
   {
-    return Room::query()->where('capacity', '>=', $people)->whereDoesntHave(relation: 'booking', callback: function ($query) use ($checkIn, $checkOut) {
-      $query->where(function ($q) use ($checkIn, $checkOut) {
-        $q->where('check_in', '<=', $checkOut)
-          ->where('check_out', '>=', $checkIn);
-      })->whereNot(function ($query) use ($checkIn, $checkOut) {
-        $query->where('check_out', '=', $checkIn)
-          ->orWhere('check_in', '=', $checkOut);
+    return Room::query()
+      ->where('capacity', '>=', $people)
+      ->where('active', true)
+      ->whereDoesntHave(relation: 'booking', callback: function ($query) use ($checkIn, $checkOut) {
+        $query->where(function ($q) use ($checkIn, $checkOut) {
+          $q->where('check_in', '<=', $checkOut)
+            ->where('check_out', '>=', $checkIn);
+        })->whereNot(function ($query) use ($checkIn, $checkOut) {
+          $query->where('check_out', '=', $checkIn)
+            ->orWhere('check_in', '=', $checkOut);
+        });
       });
-    });
   }
 }

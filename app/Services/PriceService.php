@@ -2,24 +2,20 @@
 
 namespace App\Services;
 
-use App\Helpers\ApiResponse;
-use App\Helpers\ParseValues;
 use App\Models\Price;
 use DB;
-use Request;
-use Symfony\Component\HttpFoundation\Response;
-use Validator;
+
 
 class PriceService
 {
 
-  private $STRIPE_KEY;
-
-  public function __construct()
-  {
-    $this->STRIPE_KEY = env('STRIPE_SK_TEST');
-  }
-
+  /**
+   * Create default price in DB
+   * @param mixed $amount
+   * @param mixed $roomID
+   * @param mixed $product
+   * @return array{error: string, success: bool|array{price: TModel, success: bool}}
+   */
   public function createDefault($amount, $roomID, $product)
   {
 
@@ -32,11 +28,6 @@ class PriceService
         'stripe_id' => $product->default_price,
         'is_default' => true
       ]);
-
-      if ($price) {
-
-        return ['success' => false, 'error' => 'No se logro crear el precio'];
-      }
 
       DB::commit();
       return ['success' => true, 'price' => $price];
