@@ -14,6 +14,7 @@ return new class extends Migration {
       $table->id();
       $table->string(column: 'url')->require;
       $table->string(column: 'public_id')->require;
+      $table->softDeletes();
       $table->timestamps();
     });
   }

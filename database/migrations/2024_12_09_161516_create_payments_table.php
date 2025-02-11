@@ -18,6 +18,7 @@ return new class extends Migration {
       $table->string('client_secret');
       $table->string('status')->default(value: 0);
       $table->foreignId('booking_id')->constrained()->onDelete('cascade');
+      $table->softDeletes();
       $table->timestamps();
     });
   }

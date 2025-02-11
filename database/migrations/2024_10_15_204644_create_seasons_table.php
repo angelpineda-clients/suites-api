@@ -16,6 +16,7 @@ return new class extends Migration {
       $table->string(column: 'alias')->nullable();
       $table->date(column: 'initial_date')->require();
       $table->date(column: 'final_date')->require();
+      $table->softDeletes();
       $table->timestamps();
     });
   }

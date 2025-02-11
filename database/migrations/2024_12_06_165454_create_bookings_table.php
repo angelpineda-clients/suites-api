@@ -21,6 +21,7 @@ return new class extends Migration {
       $table->date(column: 'check_in')->require();
       $table->date(column: 'check_out')->require();
       $table->foreignId(column: 'room_id')->constrained()->onDelete('cascade');
+      $table->softDeletes();
       $table->timestamps();
     });
   }

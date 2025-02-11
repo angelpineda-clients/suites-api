@@ -17,6 +17,7 @@ return new class extends Migration {
       $table->boolean('is_default')->default(false);
       $table->foreignId('room_id')->require()->constrained()->onDelete('cascade');
       $table->foreignId('season_id')->nullable()->constrained()->onDelete('cascade');
+      $table->softDeletes();
       $table->timestamps();
 
       $table->unique(['room_id', 'is_default'], 'unique_default_price');

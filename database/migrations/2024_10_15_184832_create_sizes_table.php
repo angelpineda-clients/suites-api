@@ -14,6 +14,7 @@ return new class extends Migration {
       $table->id();
       $table->string('name')->require();
       $table->string('alias')->nullable();
+      $table->softDeletes();
       $table->timestamps();
     });
   }

@@ -18,10 +18,12 @@ return new class extends Migration {
       $table->integer('capacity')->nullable();
       $table->integer('beds')->nullable();
       $table->double('price')->require();
-      $table->string('stripe_id')->require();
-      $table->string('price_id')->nullable()->constrained()->onDelete('cascade');
+      $table->string('stripe_product_id')->require();
+      $table->string('stripe_default_price_id')->nullable()->constrained()->onDelete('cascade');
       $table->foreignId('size_id')->nullable()->constrained()->onDelete('cascade');
       $table->foreignId('floor_id')->nullable()->constrained()->onDelete('cascade');
+      $table->boolean('active')->default(true);
+      $table->softDeletes();
       $table->timestamps();
     });
   }
