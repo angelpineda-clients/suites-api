@@ -16,11 +16,11 @@ class PaymentController extends Controller
 
   public function __construct()
   {
-    $this->STRIPE_KEY = env('STRIPE_SK_TEST');
+    $this->STRIPE_KEY = env('STRIPE_SECRET');
   }
 
 
-  public function store($amount, $bookingID)
+  public function store($amount, $bookingID, $session)
   {
 
     if (!$bookingID) {
@@ -31,19 +31,9 @@ class PaymentController extends Controller
 
     try {
 
-      $stripe = new \Stripe\StripeClient(config: $this->STRIPE_KEY);
-
-
-      $payment_intent = $stripe->paymentIntents->create([
-        'amount' => $amount,
-        'currency' => 'mxn',
-        'automatic_payment_methods' => ['enabled' => true],
-      ]);
-
       $payment = Payment::create([
-        'payment_intent' => $payment_intent->id,
-        'amount' => $payment_intent->amount,
-        'client_secret' => $payment_intent->client_secret,
+        'amount' => $amount,
+        'client_secret' => $session->client_secret,
         'booking_id' => $bookingID
       ]);
 

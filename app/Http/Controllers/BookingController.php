@@ -7,6 +7,7 @@ use App\Helpers\ApiResponse;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Services\BookingService;
+use App\Services\CheckoutService;
 use App\Services\SeasonService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -20,10 +21,12 @@ class BookingController extends Controller
 {
   private const RELATIONS = ['payment'];
   protected $bookingService;
+  protected $checkoutService;
 
-  public function __construct(BookingService $bookingService)
+  public function __construct(BookingService $bookingService, CheckoutService $checkoutService)
   {
     $this->bookingService = $bookingService;
+    $this->checkoutService = $checkoutService;
   }
 
   public function store(Request $request)
@@ -50,8 +53,8 @@ class BookingController extends Controller
 
     try {
 
+      /* Brings all bookings for this room ID and checks overlap */
       $querySearchBooking = Booking::query()->where(column: 'room_id', operator: $roomID);
-
 
       $overlap = $this->bookingService->checkOverlap(query: $querySearchBooking, startDate: $startDate, endDate: $endDate);
 
@@ -59,22 +62,23 @@ class BookingController extends Controller
         return ApiResponse::error(message: 'Duplicated booking dates');
       }
 
-      $room = Room::findOrFail(id: $roomID);
-
-      $total = $this->bookingService->roomPricesBySeason(roomId: $room->id, initialDate: $startDate, finalDate: $endDate, basePrice: $room->price);
+      $session = $this->checkoutService->createCheckoutSession($roomID, $startDate, $endDate);
 
       $booking = Booking::create(attributes: $request->all());
 
+      $room = Room::findOrFail(id: $roomID);
+      $total = $this->bookingService->roomPricesBySeason(roomId: $room->id, initialDate: $startDate, finalDate: $endDate, basePrice: $room->price);
+
       $payment = new PaymentController();
 
-      $paymentObject = $payment->store(amount: $total, bookingID: $booking->id);
+      $paymentObject = $payment->store(amount: $total, bookingID: $booking->id, session: $session);
 
       if (!$paymentObject['success']) {
         return ApiResponse::error('Unexpected error', $paymentObject['error']);
       }
 
       DB::commit();
-      return ApiResponse::success(data: $paymentObject['payment_info']);
+      return ApiResponse::success(data: $session['client_secret']);
 
     } catch (\Exception $e) {
 

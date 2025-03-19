@@ -13,7 +13,6 @@ return new class extends Migration {
     Schema::create('payments', function (Blueprint $table) {
       $table->id();
       $table->string('amount');
-      $table->string('payment_intent');
       $table->string('method_type')->nullable();
       $table->string('client_secret');
       $table->string('status')->default(value: 0);

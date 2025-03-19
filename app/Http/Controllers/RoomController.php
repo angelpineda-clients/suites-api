@@ -30,7 +30,7 @@ class RoomController extends Controller
   {
     $this->roomService = $roomService;
     $this->priceService = $priceService;
-    $this->STRIPE_KEY = env('STRIPE_SK_TEST');
+    $this->STRIPE_KEY = env('STRIPE_SECRET');
   }
 
   public function store(Request $request)
