@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\BookingStatus;
 use App\Helpers\ApiResponse;
+use App\Helpers\ParseValues;
 use App\Models\Booking;
 use App\Models\Room;
 use App\Services\BookingService;
@@ -66,12 +67,9 @@ class BookingController extends Controller
 
       $booking = Booking::create(attributes: $request->all());
 
-      $room = Room::findOrFail(id: $roomID);
-      $total = $this->bookingService->roomPricesBySeason(roomId: $room->id, initialDate: $startDate, finalDate: $endDate, basePrice: $room->price);
-
       $payment = new PaymentController();
 
-      $paymentObject = $payment->store(amount: $total, bookingID: $booking->id, session: $session);
+      $paymentObject = $payment->store(amount: ParseValues::centsToPrice($session->amount_total), bookingID: $booking->id, session: $session);
 
       if (!$paymentObject['success']) {
         return ApiResponse::error('Unexpected error', $paymentObject['error']);

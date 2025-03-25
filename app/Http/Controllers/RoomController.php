@@ -83,7 +83,7 @@ class RoomController extends Controller
       ]);
 
       // create default price
-      $isDefaultPrice = $this->priceService->createDefault($attributes['price'], $room->id, product: $isProduct);
+      /* $isDefaultPrice = $this->priceService->createDefault($attributes['price'], $room->id, product: $isProduct); */
 
       // sync services
       if (isset($services)) {

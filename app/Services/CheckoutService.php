@@ -12,7 +12,6 @@ use Carbon\Carbon;
 class CheckoutService
 {
 
-
   public function createCheckoutSession($roomId, $initialDate, $finalDate)
   {
     $room = Room::findOrFail($roomId);
@@ -26,8 +25,19 @@ class CheckoutService
 
     for ($i = 0; $i < $days; $i++) {
       $currentDate = $initialDate->copy()->addDays($i);
-      $season = Season::where('initial_date', '<=', $currentDate)
-        ->where('final_date', '>=', $currentDate)
+      $targetDate = Carbon::parse($currentDate)->format('m-d');
+
+      $season = Season::where(function ($query) use ($targetDate) {
+        $query->whereRaw("DATE_FORMAT(initial_date, '%m-%d') <= ?", [$targetDate])
+          ->whereRaw("DATE_FORMAT(final_date, '%m-%d') >= ?", [$targetDate]);
+      })
+        ->orWhere(function ($query) use ($targetDate) {
+          $query->whereRaw("DATE_FORMAT(initial_date, '%m-%d') > DATE_FORMAT(final_date, '%m-%d')")
+            ->where(function ($subQuery) use ($targetDate) {
+              $subQuery->whereRaw("DATE_FORMAT(initial_date, '%m-%d') <= ?", [$targetDate])
+                ->orWhereRaw("DATE_FORMAT(final_date, '%m-%d') >= ?", [$targetDate]);
+            });
+        })
         ->first();
 
       $price = $season ? Price::where('room_id', $room->id)->where('season_id', $season->id)->first() : null;
@@ -50,7 +60,7 @@ class CheckoutService
     }
 
     $session = Session::create([
-      'payment_method_types' => ['card'],
+      'payment_method_options' => ['card' => ['installments' => ['enabled' => true]]],
       'currency' => 'mxn',
       'line_items' => $lineItems,
       'mode' => 'payment',

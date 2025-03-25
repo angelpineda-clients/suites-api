@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Helpers\ParseValues;
 use App\Models\Price;
+use App\Models\Room;
 use App\Services\ProductService;
 use DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -30,7 +31,7 @@ class PriceController extends Controller
     $validator = Validator::make(data: $request->all(), rules: [
       'amount' => 'required',
       'room_id' => 'required',
-      'product_id' => 'required'
+      'season_id' => 'required'
     ]);
 
     if ($validator->fails()) {
@@ -40,19 +41,20 @@ class PriceController extends Controller
     $page = $request->input(key: 'page', default: 1);
     $per_page = $request->input(key: 'per_page', default: 10);
 
-    $attributes = $request->except('default');
+    $attributes = $request->except(['default', 'page', 'per_page']);
     $isPrice = null;
 
     $stripe = new \Stripe\StripeClient($this->STRIPE_KEY);
 
     DB::beginTransaction();
     try {
+      $room = Room::findOrFail($attributes['room_id']);
 
       $isPrice = $stripe->prices->create(
         params: [
           'currency' => 'mxn',
-          'unit_amount' => $attributes['amount'],
-          'product' => $attributes['product_id']
+          'unit_amount' => ParseValues::priceToCents($attributes['amount']),
+          'product' => $room['stripe_product_id']
         ]
       );
 
@@ -62,6 +64,7 @@ class PriceController extends Controller
 
       $price = Price::create([
         ...$attributes,
+        'stripe_id' => $isPrice->id,
       ]);
 
       $query = Price::query()->where('room_id', $request->input('room_id'))->with(relations: ['season']);
